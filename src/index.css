@@ -1,16 +1,15 @@
 @import "tailwindcss";
 
-/* 브라우저 기본 마진 제거 + 전체 높이 확보 + 스크롤 숨김(흰 띠 방지) */
+
 html, body, #root {
   height: 100%;
 }
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 세로/가로 스크롤 모두 제거 */
+  overflow: hidden; 
 }
 
-/* 선택: 타이틀 등장 애니메이션 유틸 */
 @keyframes pop-in {
   0% { transform: scale(0.95); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
