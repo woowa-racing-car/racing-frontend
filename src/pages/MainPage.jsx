@@ -1,6 +1,7 @@
 import React from "react";
 import bgUrl from "../assets/images/main-background.svg";
 import titleImg from "../assets/images/main-title.svg";
+import signboardImg from "../assets/images/main-signboard.svg";
 
 export default function MainPage() {
   return (
@@ -58,6 +59,7 @@ export default function MainPage() {
             }}
           />
 
+          {}
           <img
             src={titleImg}
             alt="title"
@@ -65,14 +67,34 @@ export default function MainPage() {
             className="title-fade"
             style={{
               position: "absolute",
-              top: "190px",
+              top: "140px",
               left: "50%",
               transform: "translateX(-50%)",
-              width: "600px",
+              width: "700px",
               objectFit: "contain",
               pointerEvents: "none",
               userSelect: "none",
-              opacity: 0,      
+              opacity: 0,
+              zIndex: 9999
+            }}
+          />
+
+          {}
+          <img
+            src={signboardImg}
+            alt="signboard"
+            draggable={false}
+            className="title-fade"
+            style={{
+              position: "absolute",
+              top: "380px", 
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "500px",
+              objectFit: "contain",
+              opacity: 0,
+              pointerEvents: "none",
+              userSelect: "none",
               zIndex: 9999
             }}
           />

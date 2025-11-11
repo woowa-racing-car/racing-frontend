@@ -9,7 +9,6 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
-
 @font-face {
   font-family: "Giants-Regular";
   src: url("./assets/fonts/Giants-Regular.ttf") format("truetype");
