@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+html, body, #root {
+  height: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+@font-face {
+  font-family: "Giants-Regular";
+  src: url("./assets/fonts/Giants-Regular.ttf") format("truetype");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Giants-Bold";
+  src: url("./assets/fonts/Giants-Bold.ttf") format("truetype");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "Giants-Inline";
+  src: url("./assets/fonts/Giants-Inline.ttf") format("truetype");
+  font-weight: normal;
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@utility animate-popIn {
+  animation: pop-in 0.3s ease-out both;
+}
