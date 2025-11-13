@@ -1,5 +1,6 @@
 import React from "react";
 import MyPageBackground from "./MyPageBackground";
+import CommonHeader from "../../components/CommonHeader";
 
 export default function MyPage() {
   return (
@@ -18,14 +19,28 @@ export default function MyPage() {
         <div
           style={{
             position: "relative",
-            width: "1200px",   
-            height: "675px",   
+            width: "1200px",
+            height: "675px",
             background: "black",
             overflow: "hidden",
           }}
         >
        
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              zIndex: 10,
+            }}
+          >
+            <CommonHeader userName="username" coin={350} />
+          </div>
+
           <MyPageBackground />
+
+    
           <div
             style={{
               position: "absolute",
