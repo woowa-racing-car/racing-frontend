@@ -21,8 +21,8 @@ export default function MyPageBackground() {
         alt="light"
         style={{
           position: "absolute",
-          top: "50%",
-          left: "43%",
+          top: "45%",
+          left: "38%",
           transform: "translate(-50%, -50%) scale(0.65)", 
           width: "auto",
           height: "auto",
