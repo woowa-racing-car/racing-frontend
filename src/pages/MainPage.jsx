@@ -4,12 +4,14 @@ import MainBackground from "./main/MainBackground";
 import MainTitle from "./main/MainTitle";
 import MainSignboard from "./main/MainSignboard";
 
+
 export default function MainPage() {
   return (
     <>
       <MainFadeStyle />
       <div
         style={{
+          
           position: "fixed",
           inset: 0,
           background: "white",

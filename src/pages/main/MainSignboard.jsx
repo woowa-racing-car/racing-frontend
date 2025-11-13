@@ -1,21 +1,91 @@
 import React, { useState } from "react";
+import axios from "axios";
 import signboardImg from "../../assets/images/main-signboard.svg";
 import joinImg from "../../assets/images/main-join.svg";
 import loginImg from "../../assets/images/main-login.svg";
 import MainInput from "./MainInput";
 
 export default function MainSignboard() {
-  const [mode, setMode] = useState("login"); // 'login' or 'join'
+  const [mode, setMode] = useState("login");
+
+
+  const [name, setName] = useState("");
+  const [loginId, setLoginId] = useState("");
+  const [loginPw, setLoginPw] = useState("");
+  const [message, setMessage] = useState("");
+
 
   const handleLoginClick = () => setMode("login");
   const handleJoinClick = () => setMode("join");
+
+  const handleJoin = async () => {
+    if (!name || !loginId || !loginPw) {
+      setMessage("모든 필드를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await axios.post("http://15.164.193.52:8080/api/v1/auth/join", {
+        name,
+        loginId,
+        loginPw,
+      });
+
+      if (res.data.status === 200) {
+        setMessage("회원가입 성공! 자동으로 로그인합니다.");
+
+        await handleLogin();
+      } else {
+        setMessage(res.data.reason || "회원가입 완료");
+      }
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.reason || "회원가입 실패");
+      } else {
+        setMessage("서버 연결 실패");
+      }
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!loginId || !loginPw) {
+      setMessage("아이디와 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await axios.post("http://15.164.193.52:8080/api/v1/auth/login", {
+        loginId,
+        loginPw,
+      });
+
+      const token = res.headers.authorization;
+
+      if (res.data.status === 200) {
+        if (token) {
+          localStorage.setItem("token", token);
+          setMessage("로그인 성공! 토큰이 저장되었습니다.");
+        } else {
+          setMessage("로그인 성공 (토큰 없음)");
+        }
+      } else {
+        setMessage(res.data.reason || "로그인 실패");
+      }
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.reason || "로그인 실패");
+      } else {
+        setMessage("서버 연결 실패");
+      }
+    }
+  };
 
   return (
     <div
       className="fade-item"
       style={{
         position: "absolute",
-        top: "57%", // ✅ 60% → 57%로 조정
+        top: "57%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: mode === "join" ? "590px" : "500px",
@@ -27,7 +97,7 @@ export default function MainSignboard() {
         zIndex: 20,
       }}
     >
-      {/* 입력창 영역 */}
+      {/* 입력창 */}
       <div
         style={{
           position: "absolute",
@@ -43,50 +113,54 @@ export default function MainSignboard() {
       >
         {mode === "login" ? (
           <>
-            <MainInput label="아이디" type="text" />
-            <MainInput label="비밀번호" type="password" />
+            <MainInput
+              label="아이디"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+            />
+            <MainInput
+              label="비밀번호"
+              type="password"
+              value={loginPw}
+              onChange={(e) => setLoginPw(e.target.value)}
+            />
           </>
         ) : (
           <>
-            <MainInput label="닉네임" type="text" />
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <MainInput label="아이디" type="text" flexGrow />
-              <button
-                style={{
-                  background: "#D28B35",
-                  border: "none",
-                  borderRadius: "6px",
-                  height: "36px",
-                  padding: "0 14px",
-                  minWidth: "60px",
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                  cursor: "pointer",
-                  fontFamily: "Giants-Regular",
-                  color: "white",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                중복확인
-              </button>
-            </div>
-            <MainInput label="비밀번호" type="password" />
+            <MainInput
+              label="닉네임"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <MainInput
+              label="아이디"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+            />
+            <MainInput
+              label="비밀번호"
+              type="password"
+              value={loginPw}
+              onChange={(e) => setLoginPw(e.target.value)}
+            />
           </>
         )}
       </div>
 
-      {/* 로그인 / 회원가입 버튼 */}
+      {/* 하단 버튼 */}
       <div
         style={{
           position: "absolute",
-          left: mode === "join" ? 120 : 80, // 👈 회원가입 모드일 때 약간 오른쪽으로 이동
+          left: mode === "join" ? 120 : 80,
           bottom: mode === "join" ? 55 : 40,
           display: "flex",
           gap: "30px",
         }}
       >
+        {/* 로그인 이미지 */}
         <img
           src={loginImg}
           alt="login"
@@ -97,8 +171,13 @@ export default function MainSignboard() {
             opacity: mode === "login" ? 1 : 0.6,
             transition: "opacity 0.2s ease",
           }}
-          onClick={handleLoginClick}
+          onClick={() => {
+            if (mode === "login") handleLogin();
+            else handleLoginClick();
+          }}
         />
+
+        {/* 회원가입 이미지 */}
         <img
           src={joinImg}
           alt="join"
@@ -109,9 +188,30 @@ export default function MainSignboard() {
             opacity: mode === "join" ? 1 : 0.6,
             transition: "opacity 0.2s ease",
           }}
-          onClick={handleJoinClick}
+          onClick={() => {
+            if (mode === "join") handleJoin();
+            else handleJoinClick();
+          }}
         />
       </div>
+
+      {/* 서버 응답 메시지 */}
+      {message && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 10,
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#fff",
+            fontSize: "14px",
+            textAlign: "center",
+            fontFamily: "Giants-Regular",
+          }}
+        >
+          {message}
+        </div>
+      )}
     </div>
   );
 }
