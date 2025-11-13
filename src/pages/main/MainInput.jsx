@@ -1,8 +1,15 @@
 import React from "react";
 
-export default function MainInput({ label, type }) {
+export default function MainInput({ label, type, value, onChange, flexGrow }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        flexGrow: flexGrow ? 1 : 0,
+      }}
+    >
       <label
         style={{
           width: "70px",
@@ -15,6 +22,8 @@ export default function MainInput({ label, type }) {
       </label>
       <input
         type={type}
+        value={value}             
+        onChange={onChange}    
         style={{
           flex: 1,
           height: "34px",

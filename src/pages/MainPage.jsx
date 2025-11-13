@@ -11,6 +11,7 @@ export default function MainPage() {
       <MainFadeStyle />
       <div
         style={{
+          
           position: "fixed",
           inset: 0,
           background: "white",

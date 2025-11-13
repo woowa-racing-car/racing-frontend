@@ -10,7 +10,6 @@ import CommonHeader from "../../components/CommonHeader";
 import redCarImg from "../../assets/images/mypage-redcar.svg";
 import blueCarImg from "../../assets/images/mypage-bluecar.svg";
 import greenCarImg from "../../assets/images/mypage-greencar.svg";
-
 import infoBoxImg from "../../assets/images/mypage-carinfobox.svg";
 
 export default function MyPage() {
