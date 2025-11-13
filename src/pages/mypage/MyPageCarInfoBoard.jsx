@@ -5,32 +5,35 @@ import skillShield from "../../assets/images/skill-shield.svg";
 import skillWheel from "../../assets/images/skill-wheel.svg";
 
 export default function MyPageCarInfoBoard({ car, infoBoxImg }) {
+  
+  const colorMap = {
+    red: "#ff3333",
+    blue: "#3a6bff",
+    green: "#2ecc71",
+  };
+
+  const mainColor = colorMap[car.id];
+
   return (
     <div
       style={{
         position: "absolute",
         right: "2px",
         top: "150px",
-
         width: "420px",
         height: "480px",
-
         backgroundImage: `url(${infoBoxImg})`,
         backgroundSize: "contain",
         backgroundRepeat: "no-repeat",
-
         padding: "80px 50px",
         color: "white",
         zIndex: 9,
-
         transform: "rotate(10deg)",
       }}
     >
-   
       <div
         style={{
           transform: "rotate(1deg) translateX(30px) translateY(20px) scale(0.9)",
-
         }}
       >
         <h2
@@ -38,7 +41,7 @@ export default function MyPageCarInfoBoard({ car, infoBoxImg }) {
             fontSize: "32px",
             fontWeight: "900",
             margin: 0,
-            color: "#ff3333",
+            color: mainColor,  
           }}
         >
           {car.name}
@@ -89,14 +92,13 @@ export default function MyPageCarInfoBoard({ car, infoBoxImg }) {
           style={{
             fontSize: "30px",
             fontWeight: "800",
-            color: "#ff4444",
+            color: mainColor, 
             marginBottom: "10px",
           }}
         >
           Skill
         </p>
 
-    
         <div
           style={{
             display: "flex",
