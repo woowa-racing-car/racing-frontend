@@ -35,11 +35,11 @@ export default function StartScoreBoard({ wins, losses, winRate }) {
     justifyContent: "center",
     alignItems: "center",
     color: "white",
-    fontSize: "32px",
+    fontSize: "37px",
     fontFamily: "Giants-Bold",  
     fontWeight: "bold",
     textAlign: "center",
-    transform: "translateY(-130px)", 
+    transform: "translateY(-129px)", 
   }}
 >
 
