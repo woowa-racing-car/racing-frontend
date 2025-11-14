@@ -1,9 +1,23 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import StartBackground from "./StartBackground";
 import StartButton from "./StartButton";
 import StartScoreBoard from "./StartScoreBoard";
 import CommonHeader from "../../components/CommonHeader";
 
 export default function StartPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/"); 
+    }
+  }, [navigate]);
+
   return (
     <div
       style={{
@@ -16,7 +30,6 @@ export default function StartPage() {
         padding: "2rem",
       }}
     >
-    
       <div
         style={{
           position: "relative",
@@ -25,19 +38,15 @@ export default function StartPage() {
           overflow: "hidden",
         }}
       >
-      
         <CommonHeader />
-
-    
         <StartBackground />
-
 
         <div
           style={{
             position: "absolute",
             right: "160px",
             top: "160px",
-            width: "380px",  
+            width: "380px",
             height: "380px",
             zIndex: 1,
           }}
@@ -45,7 +54,6 @@ export default function StartPage() {
           <StartScoreBoard wins={12} losses={5} winRate={70} />
         </div>
 
-      
         <div
           style={{
             position: "absolute",
