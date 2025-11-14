@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";    
 import signboardImg from "../../assets/images/main-signboard.svg";
 import joinImg from "../../assets/images/main-join.svg";
 import loginImg from "../../assets/images/main-login.svg";
 import MainInput from "./MainInput";
 
 export default function MainSignboard() {
-  const [mode, setMode] = useState("login");
+  const navigate = useNavigate();  
 
+  const [mode, setMode] = useState("login");
 
   const [name, setName] = useState("");
   const [loginId, setLoginId] = useState("");
   const [loginPw, setLoginPw] = useState("");
   const [message, setMessage] = useState("");
-
 
   const handleLoginClick = () => setMode("login");
   const handleJoinClick = () => setMode("join");
@@ -33,8 +34,7 @@ export default function MainSignboard() {
 
       if (res.data.status === 200) {
         setMessage("회원가입 성공! 자동으로 로그인합니다.");
-
-        await handleLogin();
+        await handleLogin();  
       } else {
         setMessage(res.data.reason || "회원가입 완료");
       }
@@ -64,7 +64,9 @@ export default function MainSignboard() {
       if (res.data.status === 200) {
         if (token) {
           localStorage.setItem("token", token);
-          setMessage("로그인 성공! 토큰이 저장되었습니다.");
+          setMessage("로그인 성공!");
+
+          navigate("/start");
         } else {
           setMessage("로그인 성공 (토큰 없음)");
         }
@@ -97,7 +99,7 @@ export default function MainSignboard() {
         zIndex: 20,
       }}
     >
-      {/* 입력창 */}
+
       <div
         style={{
           position: "absolute",
@@ -150,7 +152,6 @@ export default function MainSignboard() {
         )}
       </div>
 
-      {/* 하단 버튼 */}
       <div
         style={{
           position: "absolute",
@@ -160,7 +161,6 @@ export default function MainSignboard() {
           gap: "30px",
         }}
       >
-        {/* 로그인 이미지 */}
         <img
           src={loginImg}
           alt="login"
@@ -176,8 +176,6 @@ export default function MainSignboard() {
             else handleLoginClick();
           }}
         />
-
-        {/* 회원가입 이미지 */}
         <img
           src={joinImg}
           alt="join"
@@ -195,7 +193,7 @@ export default function MainSignboard() {
         />
       </div>
 
-      {/* 서버 응답 메시지 */}
+
       {message && (
         <div
           style={{

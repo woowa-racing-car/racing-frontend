@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import MainPage from "./pages/MainPage";
 import MyPage from "./pages/mypage/MyPage";
+import StartPage from "./pages/start/StartPage";
+
 
 export default function App() {
   return (
@@ -11,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/start" element={<StartPage />} />
       </Routes>
     </Router>
   );
