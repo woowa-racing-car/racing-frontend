@@ -36,6 +36,7 @@ export default function StartScoreBoard({ wins, losses, winRate }) {
     alignItems: "center",
     color: "white",
     fontSize: "32px",
+    fontFamily: "Giants-Bold",  
     fontWeight: "bold",
     textAlign: "center",
     transform: "translateY(-130px)", 
