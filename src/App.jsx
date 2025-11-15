@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MainPage from "./pages/MainPage";
 import MyPage from "./pages/mypage/MyPage";
 import StartPage from "./pages/start/StartPage";
+import PriceEntry from "./pages/price-entry/PriceEntry";
+
 
 
 export default function App() {
@@ -14,6 +16,7 @@ export default function App() {
         <Route path="/" element={<MainPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/start" element={<StartPage />} />
+        <Route path="/price-entry" element={<PriceEntry />} />
       </Routes>
     </Router>
   );
