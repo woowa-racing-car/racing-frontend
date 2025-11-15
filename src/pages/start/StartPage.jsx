@@ -18,6 +18,10 @@ export default function StartPage() {
     }
   }, [navigate]);
 
+  const handleStartClick = () => {
+    navigate("/price-entry");  
+  };
+
   return (
     <div
       style={{
@@ -62,7 +66,8 @@ export default function StartPage() {
             zIndex: 1,
           }}
         >
-          <StartButton />
+          <StartButton onClick={handleStartClick} /> 
+          
         </div>
       </div>
     </div>
