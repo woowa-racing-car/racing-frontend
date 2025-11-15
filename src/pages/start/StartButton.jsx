@@ -11,8 +11,8 @@ export default function StartButton({ onClick }) {
         cursor: "pointer",
         display: "inline-block",
         position: "relative",
-        left: "175px",   // 오른쪽으로 이동
-        top: "50px",     // 아래로 이동
+        left: "175px",
+        top: "50px",
       }}
       onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.97)")}
       onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
