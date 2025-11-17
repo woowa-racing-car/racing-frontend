@@ -35,3 +35,7 @@ html, body {
 @utility animate-popIn {
   animation: pop-in 0.3s ease-out both;
 }
+
+body {
+  font-family: 'Giants', sans-serif;
+}
