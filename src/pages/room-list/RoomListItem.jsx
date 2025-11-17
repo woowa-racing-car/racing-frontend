@@ -12,7 +12,6 @@ const RoomListItem = ({ title, current, max, status, onClick }) => {
         width: "75%",
         margin: "0 auto",
 
-        // 🔥 리스트 간격 최소화
         marginTop: "8px",
         marginBottom: "0px",
 
@@ -46,7 +45,6 @@ const RoomListItem = ({ title, current, max, status, onClick }) => {
           gap: "12px",
           alignItems: "center",
 
-          // 텍스트 오른쪽으로 이동
           padding: "0 125px",
 
           color: "#4a2a0c",
