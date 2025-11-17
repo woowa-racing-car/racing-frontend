@@ -9,13 +9,18 @@ const RoomListItem = ({ title, current, max, status, onClick }) => {
       onClick={onClick}
       style={{
         position: "relative",
-        width: "100%",
-        height: "90px",
-        marginBottom: "15px",
+        width: "75%",
+        margin: "0 auto",
+
+        // 🔥 리스트 간격 최소화
+        marginTop: "8px",
+        marginBottom: "0px",
+
+        height: "70px",
         cursor: "pointer",
+        zIndex: 2,
       }}
     >
-   
       <img
         src={itemBG}
         alt="방 리스트 배경"
@@ -25,39 +30,42 @@ const RoomListItem = ({ title, current, max, status, onClick }) => {
           width: "100%",
           height: "100%",
           objectFit: "contain",
+          zIndex: 1,
           pointerEvents: "none",
-          userSelect: "none",
         }}
       />
-
 
       <div
         style={{
           position: "relative",
-          zIndex: 2,
+          zIndex: 3,
           width: "100%",
           height: "100%",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
+          gap: "12px",
           alignItems: "center",
-          padding: "0 40px",
+
+          // 텍스트 오른쪽으로 이동
+          padding: "0 125px",
+
           color: "#4a2a0c",
           fontWeight: "700",
         }}
       >
-       
-        <span style={{ fontSize: "26px" }}>
+        <span style={{ fontSize: "20px" }}>
           {title} [{current}/{max}]
         </span>
-    
+
         <span
           style={{
-            fontSize: "22px",
+            fontSize: "16px",
             background: isWaiting ? "#2d8a3f" : "#c0392b",
             color: "white",
-            padding: "8px 22px",
-            borderRadius: "20px",
+            padding: "6px 16px",
+            borderRadius: "16px",
             fontWeight: "600",
+            whiteSpace: "nowrap",
           }}
         >
           {isWaiting ? "대기중" : "진행 중"}
