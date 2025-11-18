@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 import MyPageBackground from "./MyPageBackground";
 import MyPageCarList from "./MyPageCarList";
@@ -12,33 +13,75 @@ import blueCarImg from "../../assets/images/mypage-bluecar.svg";
 import greenCarImg from "../../assets/images/mypage-greencar.svg";
 import infoBoxImg from "../../assets/images/mypage-carinfobox.svg";
 
-export default function MyPage() {
-  const [selectedCar, setSelectedCar] = useState("red");
-  const [coin, setCoin] = useState(350);
+const CAR_KEY_MAP = {
+  RED: "red",
+  BLUE: "blue",
+  GREEN: "green",
+};
 
-  const [cars, setCars] = useState({
-    red: {
-      id: "red",
-      name: "Red Car",
-      speed: 10,
-      img: redCarImg,
-      locked: false,
-    },
-    blue: {
-      id: "blue",   
-      name: "Blue Car",
-      speed: 12,
-      img: blueCarImg,
-      locked: true,
-    },
-    green: {
-      id: "green",  
-      name: "Green Car",
-      speed: 14,
-      img: greenCarImg,
-      locked: true,
-    },
-  });
+const CAR_IMAGES = {
+  red: redCarImg,
+  blue: blueCarImg,
+  green: greenCarImg,
+};
+
+export default function MyPage() {
+  const [username, setUsername] = useState("");
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [coin, setCoin] = useState(0);
+  const [cars, setCars] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          "http://15.164.193.52:8080/api/v1/mypage",
+          {
+            headers: {
+              Authorization: `${token}`,
+            },
+          }
+        );
+
+        console.log(token);
+
+        const data = res.data.data;
+
+        setUsername(data.username);
+        setCoin(data.money);
+
+        const mappedCars = {};
+        let selectedKey = null;
+
+        data.cars.forEach((car) => {
+          const key = CAR_KEY_MAP[car.name];
+
+          mappedCars[key] = {
+            id: key,
+            name: key,
+            speed: car.speed,
+            img: CAR_IMAGES[key],
+            locked: !car.isPurchased,
+          };
+
+          if (car.isSelected) {
+            selectedKey = key;
+          }
+        });
+
+        if (!selectedKey) selectedKey = "red";
+
+        setCars(mappedCars);
+        setSelectedCar(selectedKey);
+      } catch (err) {
+        console.error("데이터 로딩 실패:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleCarSelect = (id) => {
     const car = cars[id];
@@ -49,8 +92,8 @@ export default function MyPage() {
         return;
       }
 
-      const buy = window.confirm(`${car.name}을(를) 5코인으로 구매하시겠습니까?`);
-      if (!buy) return;
+      const ok = window.confirm(`${id.toUpperCase()} 자동차를 5코인으로 구매하시겠습니까?`);
+      if (!ok) return;
 
       setCoin((prev) => prev - 5);
       setCars((prev) => ({
@@ -61,6 +104,8 @@ export default function MyPage() {
 
     setSelectedCar(id);
   };
+
+  const currentCar = selectedCar ? cars[selectedCar] : null;
 
   return (
     <div
@@ -83,7 +128,7 @@ export default function MyPage() {
           overflow: "hidden",
         }}
       >
-        <CommonHeader userName="유저_아이디" coin={coin} />
+        <CommonHeader userName={username} coin={coin} />
 
         <MyPageBackground />
 
@@ -93,16 +138,13 @@ export default function MyPage() {
           onSelect={handleCarSelect}
         />
 
-        <MyPageCarDisplay 
-  carId={selectedCar}  
-  carImage={cars[selectedCar].img}
-/>
+        {currentCar && (
+          <MyPageCarDisplay carId={currentCar.id} carImage={currentCar.img} />
+        )}
 
-
-        <MyPageCarInfoBoard 
-          car={cars[selectedCar]} 
-          infoBoxImg={infoBoxImg}
-        />
+        {currentCar && (
+          <MyPageCarInfoBoard car={currentCar} infoBoxImg={infoBoxImg} />
+        )}
       </div>
     </div>
   );
