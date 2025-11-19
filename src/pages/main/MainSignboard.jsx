@@ -7,6 +7,8 @@ import loginImg from "../../assets/images/main-login.svg";
 import MainInput from "./MainInput";
 
 export default function MainSignboard() {
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   const navigate = useNavigate();  
 
   const [mode, setMode] = useState("login");
@@ -26,7 +28,7 @@ export default function MainSignboard() {
     }
 
     try {
-      const res = await axios.post("http://15.164.193.52:8080/api/v1/auth/join", {
+      const res = await axios.post(`${baseUrl}/api/v1/auth/join`, {
         name,
         loginId,
         loginPw,
@@ -54,7 +56,8 @@ export default function MainSignboard() {
     }
 
     try {
-      const res = await axios.post("http://15.164.193.52:8080/api/v1/auth/login", {
+
+      const res = await axios.post(`${baseUrl}/api/v1/auth/login`, {
         loginId,
         loginPw,
       });
