@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import StartBackground from "./StartBackground";
 import StartButton from "./StartButton";
@@ -9,13 +10,46 @@ import CommonHeader from "../../components/CommonHeader";
 export default function StartPage() {
   const navigate = useNavigate();
 
+  const [winCount, setWinCount]=useState(0);
+  const [loseCount, setLoseCount]=useState(0);
+  const [winRate, setWinRate]=useState(0);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
       alert("로그인이 필요합니다.");
       navigate("/"); 
+      return;
     }
+
+    const fetchStartInfo=async()=>{
+      try{
+        const {data}=await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/api/v1/start`,
+          {
+            headers:{
+              Authorization:`${token}`,
+            },
+          }
+        );
+
+        const result=data.data;
+
+        setWinCount(result.winCount);
+        setLoseCount(result.loseCount);
+
+        const winRate=result.winRate.toFixed(1);
+
+        setWinRate(winRate);
+      } catch(error){
+        console.error("API 호출 실패: ",err);
+        alert("로그인이 만료되었거나, 인증에 실패하였습니다.");
+        negivate("/");
+      }
+    };
+
+    fetchStartInfo();
   }, [navigate]);
 
   const handleStartClick = () => {
@@ -55,7 +89,10 @@ export default function StartPage() {
             zIndex: 1,
           }}
         >
-          <StartScoreBoard wins={12} losses={5} winRate={70} />
+          <StartScoreBoard 
+            wins={winCount} 
+            losses={loseCount} 
+            winRate={winRate} />
         </div>
 
         <div
