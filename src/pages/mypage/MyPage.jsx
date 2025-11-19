@@ -19,6 +19,12 @@ const CAR_KEY_MAP = {
   GREEN: "green",
 };
 
+const CAR_ID_MAP={
+  red:1,
+  blue:2,
+  green:3,
+}
+
 const CAR_IMAGES = {
   red: redCarImg,
   blue: blueCarImg,
@@ -57,10 +63,12 @@ export default function MyPage() {
 
         data.cars.forEach((car) => {
           const key = CAR_KEY_MAP[car.name];
+          const car_id=CAR_ID_MAP[car.name.toLowerCase()];
 
           mappedCars[key] = {
+            car_id:car_id,
             id: key,
-            name: key,
+            name: car.name,
             speed: car.speed,
             img: CAR_IMAGES[key],
             locked: !car.isPurchased,
@@ -83,27 +91,64 @@ export default function MyPage() {
     fetchData();
   }, []);
 
-  const handleCarSelect = (id) => {
+  const handleCarSelect = async (id) => {
     const car = cars[id];
 
-    if (car.locked) {
-      if (coin < 5) {
-        alert("코인이 부족합니다!");
-        return;
-      }
+    const carId=car.car_id;
 
-      const ok = window.confirm(`${id.toUpperCase()} 자동차를 5코인으로 구매하시겠습니까?`);
-      if (!ok) return;
+    console.log(carId);
 
-      setCoin((prev) => prev - 5);
-      setCars((prev) => ({
+    try{
+      const token =localStorage.getItem("token");
+
+      const res=await axios.post(
+        `http://15.164.193.52:8080/api/v1/mypage/select/${carId}`,null,
+        {headers:{Authorization:`${token}`}}
+      );
+
+      const data=res.data.data;
+
+      if(!data.isPurchased){
+        const ok = window.confirm(`${id.toUpperCase()} 자동차를 ${data.price}코인으로 구매하시겠습니까?`);
+      if(!ok) return;
+
+      const buyRes=await axios.post(
+        `http://15.164.193.52:8080/api/v1/mypage/purchase/${carId}`,null,
+        {headers:{Authorization:`${token}`}}
+      );
+
+      const buyData=buyRes.data.data;
+      
+      setCoin(buyData.currentMoney);
+      setCars((prev)=>({
         ...prev,
-        [id]: { ...prev[id], locked: false },
+        [id]:{
+          ...prev[id],
+          locked:false,
+        },
       }));
+
+      setSelectedCar(id);
+      return;
     }
 
     setSelectedCar(id);
-  };
+
+    setCars((prev)=>({
+      ...prev,
+      [id]:{
+        ...prev[id],
+        locked:!data.isPurchased,
+      },
+    }));
+  } catch(err){
+    console.log(err.response?.data.reason);
+    const msg=err.response?.data.reason;
+    alert(msg);
+  }
+
+  return;
+};
 
   const currentCar = selectedCar ? cars[selectedCar] : null;
 
