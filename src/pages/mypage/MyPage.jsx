@@ -43,7 +43,7 @@ export default function MyPage() {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          "http://15.164.193.52:8080/api/v1/mypage",
+          `${import.meta.env.VITE_BASE_URL}/api/v1/mypage`,
           {
             headers: {
               Authorization: `${token}`,
@@ -102,7 +102,7 @@ export default function MyPage() {
       const token =localStorage.getItem("token");
 
       const res=await axios.post(
-        `http://15.164.193.52:8080/api/v1/mypage/select/${carId}`,null,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/select/${carId}`,null,
         {headers:{Authorization:`${token}`}}
       );
 
@@ -113,7 +113,7 @@ export default function MyPage() {
       if(!ok) return;
 
       const buyRes=await axios.post(
-        `http://15.164.193.52:8080/api/v1/mypage/purchase/${carId}`,null,
+        `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/purchase/${carId}`,null,
         {headers:{Authorization:`${token}`}}
       );
 
