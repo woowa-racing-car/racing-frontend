@@ -53,7 +53,7 @@ export default function StartPage() {
   }, [navigate]);
 
   const handleStartClick = () => {
-    navigate("/price-entry");  
+    navigate("/start-transition");  
   };
 
   return (
