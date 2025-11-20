@@ -11,7 +11,7 @@ export default function RacePage() {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#000",
+        background: "#ffffffff",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
