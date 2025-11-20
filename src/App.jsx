@@ -7,8 +7,9 @@ import MyPage from "./pages/mypage/MyPage";
 import StartPage from "./pages/start/StartPage";
 import PriceEntry from "./pages/price-entry/PriceEntry";
 import RoomList from "./pages/room-list/RoomList";
+import TestPage from "./pages/TestPage";
 
-
+import RacePage from "./pages/race/RacePage";
 
 export default function App() {
   return (
@@ -19,6 +20,9 @@ export default function App() {
         <Route path="/start" element={<StartPage />} />
         <Route path="/price-entry" element={<PriceEntry />} />
         <Route path="/rooms/:price" element={<RoomList />} />
+        <Route path="/test" element={<TestPage />} />
+
+        <Route path="/race" element={<RacePage />} />
       </Routes>
     </Router>
   );
