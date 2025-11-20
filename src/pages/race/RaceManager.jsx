@@ -8,12 +8,14 @@ export const RaceContext = createContext();
 
 export default function RaceManager({ children }) {
   const [isRacing, setIsRacing] = useState(false);
+  const TRACK_LENGTH = 7000;
 
 const [raceCars, setRaceCars] = useState([
-  { id: 1, name: "지환", x: 0, speed: 300, lane: 0, img: redCar, width: 300 },
-  { id: 2, name: "지명", x: 0, speed: 380, lane: 1, img: blueCar, width: 300 },
-  { id: 3, name: "아름", x: 0, speed: 290, lane: 2, img: greenCar, width: 300 },
+  { id: 1, name: "지환", x: 0, speed: 300, lane: 0, img: redCar, width: 300, color: "#ff3d3d" },
+  { id: 2, name: "지명", x: 0, speed: 380, lane: 1, img: blueCar, width: 300, color: "#3da4ff" },
+  { id: 3, name: "아름", x: 0, speed: 290, lane: 2, img: greenCar, width: 300, color: "#4cff4c" },
 ]);
+
 
 
   useEffect(() => {
@@ -39,7 +41,7 @@ const [raceCars, setRaceCars] = useState([
   }, [isRacing]);
 
   return (
-    <RaceContext.Provider value={{ raceCars, isRacing }}>
+    <RaceContext.Provider value={{ raceCars, isRacing, TRACK_LENGTH }}>
       {!isRacing && (
         <img
           src={startFlag}
