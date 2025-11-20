@@ -1,28 +1,24 @@
-import redCar from "../assets/images/car-red.png";
-import blueCar from "../assets/images/car-blue.png";
-import greenCar from "../assets/images/car-green.png";
-import lockIcon from "../assets/images/lock.png";
+import redCar from "../assets/images/redcar-icon.svg";
+import blueCar from "../assets/images/bluecar-icon.svg";
+import greenCar from "../assets/images/greencar-icon.svg";
 
 export const cars = {
   red: {
     id: "red",
-    name: "RED car",
+    name: "RED CAR",
     speed: 10,
-    image: redCar,
-    locked: false,
+    raceImage: redCar,
   },
   blue: {
     id: "blue",
-    name: "BLUE car",
+    name: "BLUE CAR",
     speed: 12,
-    image: blueCar,
-    locked: true,
+    raceImage: blueCar,
   },
   green: {
     id: "green",
-    name: "GREEN car",
+    name: "GREEN CAR",
     speed: 14,
-    image: greenCar,
-    locked: true,
+    raceImage: greenCar,
   },
 };

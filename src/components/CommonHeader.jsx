@@ -10,8 +10,6 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
     <div style={styles.headerWrapper}>
       <Container fluid>
         <Row className="d-flex align-items-center justify-content-between">
-
-  
           <Col xs="auto" className="d-flex align-items-center">
             <FaChevronLeft
               size={40}
@@ -26,6 +24,7 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
               onClick={() => navigate("/")}
             />
           </Col>
+
           <Col xs="auto" className="d-flex align-items-center" style={{ gap: "18px" }}>
             <div style={styles.infoBox}>
               <FaUserCircle size={32} color="white" />
@@ -37,7 +36,6 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
               <span style={styles.infoText}>{coin}</span>
             </div>
           </Col>
-
         </Row>
       </Container>
     </div>
@@ -47,13 +45,16 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
 const styles = {
   headerWrapper: {
     width: "100%",
-    height: "80px",      
-    padding: "0 15px",    
+    height: "80px",
+    padding: "0 15px",
     display: "flex",
     alignItems: "center",
     background: "transparent",
-    position: "relative",
-    zIndex: 10,
+
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 9999,
   },
 
   icon: {
@@ -63,10 +64,10 @@ const styles = {
   infoBox: {
     display: "flex",
     alignItems: "center",
-    gap: "7px",                  
-    padding: "8px 14px",       
+    gap: "7px",
+    padding: "8px 14px",
     background: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "15px",     
+    borderRadius: "15px",
     border: "2px solid rgba(255,255,255,0.35)",
     boxShadow: "0 3px 10px rgba(0,0,0,0.25)",
     backdropFilter: "blur(6px)",
@@ -75,7 +76,7 @@ const styles = {
   infoText: {
     color: "white",
     fontWeight: "700",
-    fontSize: "16px",           
+    fontSize: "16px",
     textShadow: "0 0 4px rgba(0,0,0,0.6)",
   },
 };
