@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; 
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
@@ -11,6 +11,7 @@ import RoomListItem from "./RoomListItem";
 
 const RoomList = () => {
   const { price } = useParams();
+  const navigate = useNavigate(); 
   const roomTier = price;
 
   const userName = "유저_아이디";
@@ -230,6 +231,7 @@ const RoomList = () => {
                       status={room.status}
                       onClick={() => {
                         console.log(`[CLICK] 방 입장: ${room.title}`);
+                        navigate(`/race/${roomTier}`);
                       }}
                     />
                   ))
@@ -312,6 +314,7 @@ const RoomList = () => {
                     onClick={() => {
                       console.log("[CLICK] 방 생성 버튼 클릭");
                       handleCreateRoom();
+                      navigate(`/race/${roomTier}`);
                     }}
                   />
                 </div>
