@@ -10,9 +10,9 @@ export default function RaceManager({ children }) {
   const [isRacing, setIsRacing] = useState(false);
 
 const [raceCars, setRaceCars] = useState([
-  { id: 1, name: "지환", x: 0, speed: 200, lane: 0, img: redCar, width: 300 },
-  { id: 2, name: "지명", x: 0, speed: 160, lane: 1, img: blueCar, width: 300 },
-  { id: 3, name: "아름", x: 0, speed: 140, lane: 2, img: greenCar, width: 300 },
+  { id: 1, name: "지환", x: 0, speed: 300, lane: 0, img: redCar, width: 300 },
+  { id: 2, name: "지명", x: 0, speed: 380, lane: 1, img: blueCar, width: 300 },
+  { id: 3, name: "아름", x: 0, speed: 290, lane: 2, img: greenCar, width: 300 },
 ]);
 
 
