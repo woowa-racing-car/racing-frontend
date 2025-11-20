@@ -13,6 +13,8 @@ export default function MyPageCarList({ cars, selectedCar, onSelect }) {
     green: "#28c76f",
   };
 
+  const ORDER=["red", "blue", "green"];
+
   return (
     <div
       style={{
@@ -25,8 +27,10 @@ export default function MyPageCarList({ cars, selectedCar, onSelect }) {
         zIndex: 10,
       }}
     >
-      {Object.keys(cars).map((id) => {
+      {ORDER.map((id) => {
         const car = cars[id];
+        if(!car) return null;
+        
         const isSelected = selectedCar === id;
 
         return (
