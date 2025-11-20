@@ -1,8 +1,11 @@
+import { useParams } from "react-router-dom";
 import RaceManager from "./RaceManager";
 import RaceTrack from "./RaceTrack";
 import CommonHeader from "../../components/CommonHeader";
 
 export default function RacePage() {
+  const { price } = useParams(); 
+
   return (
     <div
       style={{
@@ -14,7 +17,6 @@ export default function RacePage() {
         justifyContent: "center",
       }}
     >
-
       <div
         style={{
           position: "relative",
