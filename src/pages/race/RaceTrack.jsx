@@ -1,11 +1,12 @@
 import { useContext, useRef, useEffect } from "react";
 import { RaceContext } from "./RaceManager";
 import background from "../../assets/images/race-background.svg";
-import startLine from "../../assets/images/race-line.svg"; // 🔥 출발선 이미지 추가
+import startLine from "../../assets/images/race-line.svg"; 
 
 export default function RaceTrack() {
   const canvasRef = useRef(null);
-  const { raceCars } = useContext(RaceContext);
+  const { raceCars, TRACK_LENGTH } = useContext(RaceContext);
+
 
   const SCREEN_WIDTH = 1200;
   const SCREEN_HEIGHT = 675;
@@ -29,19 +30,17 @@ export default function RaceTrack() {
     function loop() {
       const me = raceCars.find(c => c.id === 1);
 
-      // 🔥 중앙으로 들어오기 전까지 화면 고정
       const targetCenterX = SCREEN_WIDTH / 2;
       let cameraX;
 
       if (me.x < targetCenterX) {
-        cameraX = 0;              // 출발 구간: 화면 고정
+        cameraX = 0;              
       } else {
-        cameraX = me.x - targetCenterX; // 중앙 이후: 화면 따라가기
+        cameraX = me.x - targetCenterX; 
       }
 
       ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-      // === 배경 ===
       if (bg.complete) {
         const bgWidth = bg.width;
         const offset = -(cameraX % bgWidth);
@@ -49,9 +48,30 @@ export default function RaceTrack() {
           ctx.drawImage(bg, offset + i * bgWidth, 0, bgWidth, SCREEN_HEIGHT);
         }
       }
-// === 🏁 출발선 ===
+
+  
+const barWidth = 900;
+const barHeight = 10;
+const barX = SCREEN_WIDTH / 2 - barWidth / 2;
+const barY = 635;
+
+ctx.fillStyle = "rgba(255,255,255,0.25)";
+ctx.fillRect(barX, barY, barWidth, barHeight);
+
+
+raceCars.forEach(car => {
+  const progress = Math.min(car.x / TRACK_LENGTH, 1);
+  const dotX = barX + progress * barWidth;
+  
+  ctx.beginPath();
+  ctx.arc(dotX, barY + barHeight / 2, 8, 0, Math.PI * 2);
+  ctx.fillStyle = car.color; 
+  ctx.fill();
+});
+
+
 if (lineImg.complete) {
-  const startLineWorldX = 500; // 출발선 절대 위치
+  const startLineWorldX = 500; 
   const startLineX = startLineWorldX - cameraX;
   const startLineY = 262;
 
@@ -63,9 +83,9 @@ if (lineImg.complete) {
 }
 
 
-      // === 🚗 자동차 + 라벨 ===
+      
       raceCars.forEach(car => {
-  const offsetCarX = 110; // 🔥 오른쪽 이동값
+  const offsetCarX = 110; 
   const drawX = car.x - cameraX + offsetCarX;
 
         const imgObj = carImages.find(i => i.id === car.id);
@@ -78,10 +98,8 @@ if (lineImg.complete) {
           const laneSpacing = 105;
           const y = baseY + car.lane * laneSpacing;
 
-          // 🚗 자동차 렌더
           ctx.drawImage(imgObj.img, drawX, y, width, height);
 
-          // 🔥 이름 라벨 추가
           const labelX = drawX + width / 2 - 35;
           const labelY = y - 20;
 
@@ -127,7 +145,6 @@ if (lineImg.complete) {
   );
 }
 
-// 🔥 라운드 박스 함수
 function drawRoundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
