@@ -19,8 +19,7 @@ export default function App() {
         <Route path="/start" element={<StartPage />} />
         <Route path="/price-entry" element={<PriceEntry />} />
         <Route path="/rooms/:price" element={<RoomList />} />
-      
-        <Route path="/race" element={<RacePage />} />
+        <Route path="/race/:price" element={<RacePage />} />
       </Routes>
     </Router>
   );
