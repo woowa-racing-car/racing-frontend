@@ -19,11 +19,11 @@ const CAR_KEY_MAP = {
   GREEN: "green",
 };
 
-const CAR_ID_MAP={
-  red:1,
-  blue:2,
-  green:3,
-}
+const CAR_ID_MAP = {
+  red: 1,
+  blue: 2,
+  green: 3,
+};
 
 const CAR_IMAGES = {
   red: redCarImg,
@@ -51,8 +51,6 @@ export default function MyPage() {
           }
         );
 
-        console.log(token);
-
         const data = res.data.data;
 
         setUsername(data.username);
@@ -63,20 +61,19 @@ export default function MyPage() {
 
         data.cars.forEach((car) => {
           const key = CAR_KEY_MAP[car.name];
-          const car_id=CAR_ID_MAP[car.name.toLowerCase()];
+          const car_id = CAR_ID_MAP[car.name.toLowerCase()];
 
           mappedCars[key] = {
-            car_id:car_id,
+            car_id,
             id: key,
             name: car.name,
             speed: car.speed,
+            price:car.price,
             img: CAR_IMAGES[key],
             locked: !car.isPurchased,
           };
 
-          if (car.isSelected) {
-            selectedKey = key;
-          }
+          if (car.isSelected) selectedKey = key;
         });
 
         if (!selectedKey) selectedKey = "red";
@@ -93,62 +90,62 @@ export default function MyPage() {
 
   const handleCarSelect = async (id) => {
     const car = cars[id];
+    const carId = car.car_id;
 
-    const carId=car.car_id;
+    const token = localStorage.getItem("token");
 
-    console.log(carId);
+    try {
+      if (car.locked) {
+        const ok = window.confirm(
+          `${id.toUpperCase()} 자동차를 ${car.price}코인으로 구매하시겠습니까?`
+        );
+        if (!ok) return;
 
-    try{
-      const token =localStorage.getItem("token");
+        try {
+          const buyRes = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/purchase/${carId}`,
+            null,
+            { headers: { Authorization: `${token}` } }
+          );
 
-      const res=await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/select/${carId}`,null,
-        {headers:{Authorization:`${token}`}}
+          const buyData = buyRes.data.data;
+
+          setCoin(buyData.currentMoney);
+
+          setCars((prev) => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              locked: false,
+            },
+          }));
+        } catch (buyErr) {
+          alert(buyErr.response?.data.reason || "구매에 실패했습니다.");
+          return;
+        }
+      }
+
+      const selectRes = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/select/${carId}`,
+        null,
+        { headers: { Authorization: `${token}` } }
       );
 
-      const data=res.data.data;
-
-      if(!data.isPurchased){
-        const ok = window.confirm(`${id.toUpperCase()} 자동차를 ${data.price}코인으로 구매하시겠습니까?`);
-      if(!ok) return;
-
-      const buyRes=await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/v1/mypage/purchase/${carId}`,null,
-        {headers:{Authorization:`${token}`}}
-      );
-
-      const buyData=buyRes.data.data;
-      
-      setCoin(buyData.currentMoney);
-      setCars((prev)=>({
-        ...prev,
-        [id]:{
-          ...prev[id],
-          locked:false,
-        },
-      }));
+      const selectData = selectRes.data.data;
 
       setSelectedCar(id);
-      return;
+
+      setCars((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          locked: !selectData.isPurchased,
+        },
+      }));
+    } catch (err) {
+      alert(err.response?.data.reason);
     }
-
-    setSelectedCar(id);
-
-    setCars((prev)=>({
-      ...prev,
-      [id]:{
-        ...prev[id],
-        locked:!data.isPurchased,
-      },
-    }));
-  } catch(err){
-    console.log(err.response?.data.reason);
-    const msg=err.response?.data.reason;
-    alert(msg);
-  }
-
-  return;
-};
+  };
 
   const currentCar = selectedCar ? cars[selectedCar] : null;
 
