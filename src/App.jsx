@@ -9,6 +9,7 @@ import StartPage from "./pages/start/StartPage";
 import PriceEntry from "./pages/price-entry/PriceEntry";
 import RoomList from "./pages/room-list/RoomList";
 import StartTransition from "./pages/start/StartTransition";
+import IntroPage from "./pages/main/IntroPage";
 
 
 import RacePage from "./pages/race/RacePage";
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/rooms/:price" element={<RoomList />} />
         <Route path="/race/:price" element={<RacePage />} />
         <Route path="/start-transition" element={<StartTransition />} />
+        <Route path="/intro" element={<IntroPage />} />
       </Routes>
     </Router>
     </UserProvider>
