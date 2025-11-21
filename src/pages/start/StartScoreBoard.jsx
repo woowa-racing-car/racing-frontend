@@ -1,6 +1,6 @@
 import scoreBoardImg from "../../assets/images/start-scoreboard.svg";
 
-export default function StartScoreBoard({ wins, losses, winRate }) {
+export default function StartScoreBoard({ wins, draws, losses, winRate }) {
   return (
     <div
       style={{
@@ -43,7 +43,7 @@ export default function StartScoreBoard({ wins, losses, winRate }) {
   }}
 >
 
-        <div>{wins}승 {losses}패</div>
+        <div>{wins}승 {draws}무 {losses}패</div>
         <div style={{ marginTop: "50px" }}></div>
 
         <div>승률 {winRate}%</div>

@@ -13,6 +13,7 @@ export default function StartPage() {
   const {fetchUser}=useUser();
 
   const [winCount, setWinCount]=useState(0);
+  const [drawCount, setDrawCount]=useState(0);
   const [loseCount, setLoseCount]=useState(0);
   const [winRate, setWinRate]=useState(0);
 
@@ -41,6 +42,7 @@ export default function StartPage() {
         const result=data.data;
 
         setWinCount(result.winCount);
+        setDrawCount(result.drawCount);
         setLoseCount(result.loseCount);
 
         const winRate=result.winRate.toFixed(1);
@@ -95,6 +97,7 @@ export default function StartPage() {
         >
           <StartScoreBoard 
             wins={winCount} 
+            draws={drawCount}
             losses={loseCount} 
             winRate={winRate} />
         </div>
