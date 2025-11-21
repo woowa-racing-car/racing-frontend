@@ -57,7 +57,7 @@ export default function StartPage() {
   }, [navigate, fetchUser]);
 
   const handleStartClick = () => {
-    navigate("/price-entry");  
+    navigate("/start-transition");  
   };
 
   return (

@@ -7,14 +7,14 @@ export default function RaceNameTag({ name }) {
         left: "50%",
         transform: "translateX(-50%)",
         background: "#2e8eff",
-        padding: "6px 14px",
-        borderRadius: "20px",
-        color: "#fff",
+        color: "white",
         fontWeight: "bold",
+        fontSize: "18px",
+        padding: "6px 16px",
+        borderRadius: "20px",
         border: "3px solid white",
-        boxShadow: "0 3px 6px rgba(0,0,0,0.3)",
+        boxShadow: "0 3px 6px rgba(59, 59, 59, 0.3)",
         whiteSpace: "nowrap",
-        zIndex: 200,
       }}
     >
       {name}
