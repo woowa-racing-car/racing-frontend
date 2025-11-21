@@ -7,6 +7,7 @@ import MyPageCarDisplay from "./MyPageCarDisplay";
 import MyPageCarInfoBoard from "./MyPageCarInfoBoard";
 
 import CommonHeader from "../../components/CommonHeader";
+import { useUser } from "../../context/UserContext";
 
 import redCarImg from "../../assets/images/mypage-redcar.svg";
 import blueCarImg from "../../assets/images/mypage-bluecar.svg";
@@ -32,6 +33,7 @@ const CAR_IMAGES = {
 };
 
 export default function MyPage() {
+  const { user, fetchUser, updateCoin } = useUser();
   const [username, setUsername] = useState("");
   const [selectedCar, setSelectedCar] = useState(null);
   const [coin, setCoin] = useState(0);
@@ -40,6 +42,7 @@ export default function MyPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        await fetchUser();
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
@@ -86,7 +89,7 @@ export default function MyPage() {
     };
 
     fetchData();
-  }, []);
+  }, [fetchUser]);
 
   const handleCarSelect = async (id) => {
     const car = cars[id];
@@ -111,6 +114,7 @@ export default function MyPage() {
           const buyData = buyRes.data.data;
 
           setCoin(buyData.currentMoney);
+          updateCoin(buyData.currentMoney);
 
           setCars((prev) => ({
             ...prev,

@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { UserProvider } from "./context/UserContext";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import MainPage from "./pages/MainPage";
@@ -12,7 +13,8 @@ import RacePage from "./pages/race/RacePage";
 
 export default function App() {
   return (
-    <Router>
+    <UserProvider>
+      <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/mypage" element={<MyPage />} />
@@ -23,5 +25,6 @@ export default function App() {
         <Route path="/race" element={<RacePage />} />
       </Routes>
     </Router>
+    </UserProvider>
   );
 }
