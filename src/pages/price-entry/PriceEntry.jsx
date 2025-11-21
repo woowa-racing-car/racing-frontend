@@ -1,10 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PriceEntryBackground from "./PriceEntryBackground";
 import PriceEntryButtons from "./PriceEntryButtons";
 import CommonHeader from "../../components/CommonHeader";
+import { connectStomp, getClient } from "../../stomp/StompClient";
 
 const PriceEntry = () => {
   const [coin, setCoin] = useState(350);
+
+
+  // useEffect(() => {
+  //   const client = getClient();
+  //   client.deactivate();
+  // });
 
   return (
     <div
