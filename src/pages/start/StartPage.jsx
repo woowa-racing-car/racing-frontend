@@ -6,9 +6,11 @@ import StartBackground from "./StartBackground";
 import StartButton from "./StartButton";
 import StartScoreBoard from "./StartScoreBoard";
 import CommonHeader from "../../components/CommonHeader";
+import { useUser } from "../../context/UserContext";
 
 export default function StartPage() {
   const navigate = useNavigate();
+  const {fetchUser}=useUser();
 
   const [winCount, setWinCount]=useState(0);
   const [loseCount, setLoseCount]=useState(0);
@@ -22,6 +24,8 @@ export default function StartPage() {
       navigate("/"); 
       return;
     }
+    
+    fetchUser();
 
     const fetchStartInfo=async()=>{
       try{
@@ -50,7 +54,7 @@ export default function StartPage() {
     };
 
     fetchStartInfo();
-  }, [navigate]);
+  }, [navigate, fetchUser]);
 
   const handleStartClick = () => {
     navigate("/price-entry");  
