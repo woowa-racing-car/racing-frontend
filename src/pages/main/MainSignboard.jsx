@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";    
 import signboardImg from "../../assets/images/main-signboard.svg";
@@ -6,20 +6,54 @@ import joinImg from "../../assets/images/main-join.svg";
 import loginImg from "../../assets/images/main-login.svg";
 import MainInput from "./MainInput";
 
+import introVideo from "../../assets/videos/introVideo.mp4";
+
 export default function MainSignboard() {
   const baseUrl = import.meta.env.VITE_BASE_URL;
-
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState("login");
-
   const [name, setName] = useState("");
   const [loginId, setLoginId] = useState("");
   const [loginPw, setLoginPw] = useState("");
   const [message, setMessage] = useState("");
 
+  const [videoReady, setVideoReady] = useState(false);
+
+  // ================================
+  // 🔥 Intro 영상 사전 로드
+  // ================================
+  useEffect(() => {
+    const video = document.createElement("video");
+    video.src = introVideo;
+    video.preload = "auto";
+
+    const handleLoaded = () => setVideoReady(true);
+    video.addEventListener("loadeddata", handleLoaded);
+
+    return () => {
+      video.removeEventListener("loadeddata", handleLoaded);
+    };
+  }, []);
+
   const handleLoginClick = () => setMode("login");
   const handleJoinClick = () => setMode("join");
+
+  const waitForVideoThenNavigate = () => {
+    if (videoReady) {
+      navigate("/intro");
+      return;
+    }
+
+    setMessage("영상 준비 중...");
+
+    const timer = setInterval(() => {
+      if (videoReady) {
+        clearInterval(timer);
+        navigate("/intro");
+      }
+    }, 100);
+  };
 
   const handleJoin = async () => {
     if (!name || !loginId || !loginPw) {
@@ -36,7 +70,7 @@ export default function MainSignboard() {
 
       if (res.data.status === 200) {
         setMessage("회원가입 성공! 자동으로 로그인합니다.");
-        await handleLogin();  
+        await handleLogin();
       } else {
         setMessage(res.data.reason || "회원가입 완료");
       }
@@ -65,14 +99,11 @@ export default function MainSignboard() {
       const token = res.headers.authorization;
 
       if (res.data.status === 200) {
-        if (token) {
-          localStorage.setItem("token", token);
-          setMessage("로그인 성공!");
+        if (token) localStorage.setItem("token", token);
 
-          navigate("/start");
-        } else {
-          setMessage("로그인 성공 (토큰 없음)");
-        }
+        setMessage("로그인 성공!");
+
+        waitForVideoThenNavigate();
       } else {
         setMessage(res.data.reason || "로그인 실패");
       }
