@@ -97,13 +97,19 @@ export default function MainSignboard() {
       });
 
       const token = res.headers.authorization;
+      const memberId = res.data.data;
+
 
       if (res.data.status === 200) {
-        if (token) localStorage.setItem("token", token);
+        if (token) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("memberId", memberId);
+          setMessage("로그인 성공!");
 
-        setMessage("로그인 성공!");
-
-        waitForVideoThenNavigate();
+          navigate("/start");
+        } else {
+          setMessage("로그인 성공 (토큰 없음)");
+        }
       } else {
         setMessage(res.data.reason || "로그인 실패");
       }

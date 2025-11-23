@@ -1,12 +1,11 @@
 import { useContext, useRef, useEffect } from "react";
 import { RaceContext } from "./RaceManager";
 import background from "../../assets/images/race-background.svg";
-import startLine from "../../assets/images/race-line.svg"; 
+import startLine from "../../assets/images/race-line.svg";
 
 export default function RaceTrack() {
   const canvasRef = useRef(null);
-  const { raceCars, TRACK_LENGTH } = useContext(RaceContext);
-
+  const { raceCars = [], TRACK_LENGTH = 7000 } = useContext(RaceContext);
 
   const SCREEN_WIDTH = 1200;
   const SCREEN_HEIGHT = 675;
@@ -21,26 +20,27 @@ export default function RaceTrack() {
     const lineImg = new Image();
     lineImg.src = startLine;
 
-    const carImages = raceCars.map(car => {
-      const img = new Image();
-      img.src = car.img;
-      return { id: car.id, img };
+    // 👇 carImgs에서도 id → memberId 로 변경
+    const carImgs = raceCars.map((car) => {
+      const im = new Image();
+      im.src = car.img;
+      return { memberId: car.memberId, img: im };
     });
 
     function loop() {
-      const me = raceCars.find(c => c.id === 1);
+      // const me = raceCars[0]; // 기준 카메라
+      const me = raceCars.find(car => car.memberId == Number(localStorage.getItem("memberId"))) || raceCars[0];
+      
+      // console.log(me);
 
-      const targetCenterX = SCREEN_WIDTH / 2;
-      let cameraX;
+      const targetX = SCREEN_WIDTH * 0.35;
 
-      if (me.x < targetCenterX) {
-        cameraX = 0;              
-      } else {
-        cameraX = me.x - targetCenterX; 
-      }
+      // 🔥 cameraX 계산 시 car.x → car.currentX
+      const cameraX = me ? Math.max(0, me.currentX - targetX) : 0;
 
       ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+      // 배경
       if (bg.complete) {
         const bgWidth = bg.width;
         const offset = -(cameraX % bgWidth);
@@ -49,78 +49,47 @@ export default function RaceTrack() {
         }
       }
 
-  
-const barWidth = 900;
-const barHeight = 10;
-const barX = SCREEN_WIDTH / 2 - barWidth / 2;
-const barY = 635;
+      // 진행도 바
+      const barWidth = 900;
+      const barHeight = 10;
+      const barX = SCREEN_WIDTH / 2 - barWidth / 2;
+      const barY = 635;
 
-ctx.fillStyle = "rgba(255,255,255,0.25)";
-ctx.fillRect(barX, barY, barWidth, barHeight);
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillRect(barX, barY, barWidth, barHeight);
 
+      raceCars.forEach((car) => {
+        // 🔥 progress 계산 시 car.x → car.currentX
+        const progress = Math.min(car.currentX / TRACK_LENGTH, 1);
+        const dotX = barX + progress * barWidth;
 
-raceCars.forEach(car => {
-  const progress = Math.min(car.x / TRACK_LENGTH, 1);
-  const dotX = barX + progress * barWidth;
-  
-  ctx.beginPath();
-  ctx.arc(dotX, barY + barHeight / 2, 8, 0, Math.PI * 2);
-  ctx.fillStyle = car.color; 
-  ctx.fill();
-});
+        ctx.beginPath();
+        ctx.arc(dotX, barY + barHeight / 2, 8, 0, Math.PI * 2);
+        ctx.fillStyle = car.color;
+        ctx.fill();
+      });
 
+      // 자동차 렌더링
+      raceCars.forEach((car) => {
+        const offsetX = 110;
 
-if (lineImg.complete) {
-  const startLineWorldX = 500; 
-  const startLineX = startLineWorldX - cameraX;
-  const startLineY = 262;
+        // 🔥 drawX 계산 시 car.x → car.currentX
+        const drawX = car.currentX - cameraX + offsetX;
 
-  const scale = 0.625;
-  const width = lineImg.width * scale;
-  const height = lineImg.height * scale;
-
-  ctx.drawImage(lineImg, startLineX, startLineY, width, height);
-}
-
-
-      
-      raceCars.forEach(car => {
-  const offsetCarX = 110; 
-  const drawX = car.x - cameraX + offsetCarX;
-
-        const imgObj = carImages.find(i => i.id === car.id);
-        if (imgObj?.img?.complete) {
+        const imgObj = carImgs.find((i) => i.memberId === car.memberId);
+        if (imgObj?.img.complete) {
           const width = car.width;
           const ratio = imgObj.img.height / imgObj.img.width;
           const height = width * ratio;
 
-          const baseY = 180;
-          const laneSpacing = 105;
-          const y = baseY + car.lane * laneSpacing;
-
+          const y = 180 + car.lane * 105;
           ctx.drawImage(imgObj.img, drawX, y, width, height);
 
-          const labelX = drawX + width / 2 - 35;
-          const labelY = y - 20;
-
-          const text = car.name || `car${car.id}`;
-          const paddingX = 16;
-
+          // 이름 라벨
           ctx.font = "20px Pretendard";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-
-          const textWidth = ctx.measureText(text).width;
-          const boxWidth = textWidth + paddingX * 2;
-          const boxHeight = 40;
-          const radius = 20;
-
-          ctx.fillStyle = "rgba(0,0,0,0.6)";
-          drawRoundRect(ctx, labelX - boxWidth/2, labelY - boxHeight/2, boxWidth, boxHeight, radius);
-          ctx.fill();
-
           ctx.fillStyle = "#fff";
-          ctx.fillText(text, labelX, labelY);
+          ctx.textAlign = "left";
+          ctx.fillText(car.name, drawX, y - 10);
         }
       });
 
@@ -143,18 +112,4 @@ if (lineImg.complete) {
       }}
     />
   );
-}
-
-function drawRoundRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
 }

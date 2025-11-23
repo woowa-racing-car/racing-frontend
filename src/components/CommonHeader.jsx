@@ -20,7 +20,35 @@ const CommonHeader = () => {
               size={40}
               color="white"
               style={styles.icon}
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                const path = window.location.pathname;
+
+                if (path.startsWith("/race/")) {
+                  // 현재 race/{price} 이므로 rooms/{price} 로 돌아간다
+                  const price = path.split("/")[2];
+                  navigate(`/rooms/${price}`);
+                  return;
+                }
+
+                if (path.startsWith("/rooms/")) {
+                  // rooms/{price} → price-entry 로
+                  navigate("/price-entry");
+                  return;
+                }
+
+                if (path.startsWith("/price-entry")) {
+                  navigate("/start");
+                  return;
+                }
+
+                if (path.startsWith("/start")) {
+                  navigate("/");
+                  return;
+                }
+
+                // 그 외의 경우는 기본 뒤로가기
+                // navigate(-1);
+              }}
             />
             <FaHome
               size={40}
