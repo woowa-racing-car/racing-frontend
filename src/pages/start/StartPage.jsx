@@ -71,7 +71,6 @@ export default function StartPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "2rem",
       }}
     >
       <div
