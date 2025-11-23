@@ -1,11 +1,12 @@
-import { useContext, useRef, useEffect } from "react";
+import { useContext, useRef, useEffect, useState } from "react";
 import { RaceContext } from "./RaceManager";
 import background from "../../assets/images/race-background.svg";
 import startLine from "../../assets/images/race-line.svg";
 
 export default function RaceTrack() {
   const canvasRef = useRef(null);
-  const { raceCars = [], TRACK_LENGTH = 7000 } = useContext(RaceContext);
+  const { raceCars = [], TRACK_LENGTH = 7000, hostId } = useContext(RaceContext);
+  const [nameTags, setNameTags] = useState([]);
 
   const SCREEN_WIDTH = 1200;
   const SCREEN_HEIGHT = 675;
@@ -70,6 +71,7 @@ export default function RaceTrack() {
       });
 
       // 자동차 렌더링
+      const newNameTags = [];
       raceCars.forEach((car) => {
         const offsetX = 110;
 
@@ -85,31 +87,74 @@ export default function RaceTrack() {
           const y = 180 + car.lane * 105;
           ctx.drawImage(imgObj.img, drawX, y, width, height);
 
-          // 이름 라벨
-          ctx.font = "20px Pretendard";
-          ctx.fillStyle = "#fff";
-          ctx.textAlign = "left";
-          ctx.fillText(car.name, drawX, y - 10);
+          // 이름 라벨 위치 저장 (overlay로 표시하기 위해)
+          const isHost = hostId && car.memberId === Number(hostId);
+          newNameTags.push({
+            memberId: car.memberId,
+            name: car.name,
+            x: drawX,
+            y: y - 10,
+            isHost,
+          });
         }
       });
+      setNameTags(newNameTags);
 
       requestAnimationFrame(loop);
     }
 
     requestAnimationFrame(loop);
-  }, [raceCars]);
+  }, [raceCars, hostId]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={SCREEN_WIDTH}
-      height={SCREEN_HEIGHT}
-      style={{
-        width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT,
-        display: "block",
-        background: "#111",
-      }}
-    />
+    <div style={{ position: "relative", width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}>
+      <canvas
+        ref={canvasRef}
+        width={SCREEN_WIDTH}
+        height={SCREEN_HEIGHT}
+        style={{
+          width: SCREEN_WIDTH,
+          height: SCREEN_HEIGHT,
+          display: "block",
+          background: "#111",
+        }}
+      />
+      {/* 닉네임과 별 아이콘 overlay */}
+      {nameTags.map((tag) => (
+        <div
+          key={tag.memberId}
+          style={{
+            position: "absolute",
+            left: `${tag.x}px`,
+            top: `${tag.y - 25}px`,
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            pointerEvents: "none",
+          }}
+        >
+          {tag.isHost && (
+            <i
+              className="bi bi-star-fill"
+              style={{
+                color: "#ffd700",
+                fontSize: "16px",
+              }}
+            />
+          )}
+          <span
+            style={{
+              color: "#fff",
+              fontSize: "20px",
+              fontFamily: "Pretendard",
+              fontWeight: "bold",
+              textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
+            }}
+          >
+            {tag.name}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }

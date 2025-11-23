@@ -254,7 +254,7 @@ export default function RaceManager({ children, room }) {
   // 렌더
   // ----------------------------
   return (
-    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH }}>
+    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH, hostId: room?.hostId }}>
       {isReadyToStart && (
         <img
           src={startFlag}
