@@ -1,7 +1,7 @@
 // src/pages/room/RoomList.jsx (수정된 주요 부분 전체 파일)
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { connectStomp, getClient } from "../../stomp/StompClient";
+import { connectStomp, getClient, getWsUrl} from "../../stomp/StompClient";
 
 import CommonHeader from "../../components/CommonHeader";
 import RoomListBackground from "./RoomListBackground";
@@ -15,69 +15,77 @@ const RoomList = () => {
   const roomTier = price;
 
   const userName = "유저_아이디";
-  const memberId = 1;
+  // const memberId = 1;
 
   const [rooms, setRooms] = useState({});
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 3;
 
-  const stompClientRef = useRef(null);
+  const subsRef = useRef({});
+
 
   const rawToken = localStorage.getItem("token") || "";
   const token = rawToken.startsWith("Bearer ") ? rawToken.substring(7) : rawToken;
+  const wsUrl = `${import.meta.env.VITE_BASE_URL}/ws?token=${token}&roomTier=${roomTier}`;
 
   useEffect(() => {
-    console.log("%c[WS INIT] Connecting...", "color: yellow; font-weight:bold;");
-    const wsUrl = `${import.meta.env.VITE_BASE_URL}/ws?token=${token}&roomTier=${roomTier}`;
+    let client = getClient();
 
-    // connectStomp로 연결 (싱글턴)
-    const client = connectStomp(wsUrl, token, () => {
-      console.log("%c[WS CONNECTED]", "color:green;font-weight:bold;");
-    });
-    stompClientRef.current = client;
+    // 1) 아직 client가 없다면 연결 시작
+    if (!client || getWsUrl() !== wsUrl) {
+      console.log("[STOMP] Connecting...");
 
-    // onConnect handler 등록 (client가 이미 connect 된 이후에도 onConnect가 호출되므로 안전)
-    client.onConnect = () => {
-      // 전체 방 목록 구독
-      const roomsSubPath = `/sub/rooms/${roomTier}`;
-      client.subscribe(roomsSubPath, (message) => {
-        const body = JSON.parse(message.body);
-        console.log(body);
-        setRooms((prev) => ({ ...prev, [roomTier]: body.data.rooms }));
+      connectStomp(wsUrl, token, () => {
+        console.log("[STOMP] connected");
+        setupSubscriptions();
       });
 
-      // 방 생성 응답
-      client.subscribe("/user/sub/room/create", (msg) => {
+      return;
+    }
+
+    if (!client.connected) {
+      client.onConnect = () => {
+        console.log("[STOMP] connected (late)");
+        setupSubscriptions();
+      };
+      return;
+    }
+
+    setupSubscriptions();
+
+    function setupSubscriptions() {
+      const roomsSubPath = `/sub/rooms/${roomTier}`;
+
+      subsRef.current.rooms = client.subscribe(roomsSubPath, (msg) => {
         const body = JSON.parse(msg.body);
-        console.log("[ROOM CREATE RESPONSE]", body);
-        // 생성된 방으로 바로 입장 UI로 보낼 필요가 있다면 room만 전달
+        console.log(`[RECEIVED] /sub/rooms/${roomTier}`, body);
+        setRooms(prev => ({ ...prev, [roomTier]: body.data.rooms }));
+      });
+
+      subsRef.current.create = client.subscribe("/user/sub/room/create", (msg) => {
+        const body = JSON.parse(msg.body);
+        console.log(`[RECEIVED] /user/sub/room/create`, body);
         navigate(`/race/${roomTier}`, { state: { room: body.data } });
       });
 
-      // 방 입장 응답 (room 데이터만 보냄)
-      client.subscribe("/user/sub/room/join", (msg) => {
+      subsRef.current.join = client.subscribe("/user/sub/room/join", (msg) => {
         const body = JSON.parse(msg.body);
-        console.log("[JOIN RESPONSE]", body);
+        console.log(`[RECEIVED] /user/sub/room/join`, body);
         if (body.type === "ROOM_JOIN_SUCCESS") {
-          const room = body.data;
-          // client는 절대 state로 전달하지 않음 — RacePage는 getClient()로 직접 가져오거나 StompClient 모듈 사용
-          navigate(`/race/${roomTier}`, { state: { room } });
+          navigate(`/race/${roomTier}`, { state: { room: body.data } });
         }
       });
 
-      // 에러 응답
-      client.subscribe("/user/sub/error", (msg) => {
-        console.warn("[WS ERROR MESSAGE]", msg.body);
-      });
-
-      // 전체 방 목록 요청
+      console.log("[SEND] /pub/rooms");
       client.publish({ destination: "/pub/rooms" });
-    };
+    }
 
     // cleanup
     return () => {
-      console.log("%c[WS DISCONNECT]", "color:gray;font-weight:bold;");
-      // client.deactivate(); // 싱글턴을 다른 페이지에서 쓰면 끊지 말고 필요 시 disconnectStomp() 사용
+      Object.values(subsRef.current).forEach(sub => {
+        try { sub.unsubscribe(); } catch (e) {}
+      });
+      subsRef.current = {};
     };
   }, [roomTier]);
 
@@ -87,8 +95,9 @@ const RoomList = () => {
       console.log("[ERROR] STOMP not connected");
       return;
     }
-    const payload = { memberId, nickname: userName };
-    client.publish({ destination: "/pub/room/create", body: JSON.stringify(payload) });
+
+    client.publish({ destination: "/pub/room/create" });
+    console.log("[SEND] /pub/room/create");
   };
 
   // pagination render ... (원래 코드와 동일)
@@ -136,6 +145,7 @@ const RoomList = () => {
                           return;
                         }
                         client.publish({ destination: "/pub/room/join", body: JSON.stringify({ roomId: room.roomId }) });
+                        console.log("[SEND] /pub/room/join roomId: ",room.roomId);
                       }}
                     />
                   ))

@@ -6,12 +6,42 @@ let _client = null;
 let _wsUrl = null;
 let _token = null;
 
+const subscriptions = {}; 
+
 export function getClient() {
   return _client;
 }
 
+export function getWsUrl() {
+  return _wsUrl;
+}
+
+export function subscribe(destination, callback) {
+  if (!_client || !_client.connected) {
+    console.warn("[STOMP] Cannot subscribe: not connected");
+    return;
+  }
+
+  // 중복 구독 방지
+  if (subscriptions[destination]) {
+    console.log("[STOMP] Already subscribed:", destination);
+    return subscriptions[destination];
+  }
+
+  // 실제 STOMP 구독
+  const sub = _client.subscribe(destination, (msg) => {
+    const body = JSON.parse(msg.body);
+    callback?.(body);
+  });
+
+  // ⭐ 자동으로 subscriptions에 저장
+  subscriptions[destination] = sub;
+
+  console.log("[STOMP] Subscribed:", destination);
+  return sub;
+}
+
 export function connectStomp(wsUrl, token, onConnected) {
-  // 이미 연결된 client가 있고 url/token이 같다면 재사용
   if (_client && _wsUrl === wsUrl) {
     if (onConnected) onConnected();
     return _client;
@@ -25,15 +55,15 @@ export function connectStomp(wsUrl, token, onConnected) {
   const client = new Client({
     webSocketFactory: () => socket,
     reconnectDelay: 5000,
-    debug: (str) => {
-      // 개발용 로그
-      // console.log("[STOMP DEBUG]", str);
-    },
   });
 
   client.onConnect = (frame) => {
-    // strophe / stomp connected
     console.log("[STOMP] connected");
+
+    _client.subscribe("/user/sub/error", (msg) => {
+      console.warn("[WS ERROR MESSAGE]", msg.body);
+    });
+
     if (typeof onConnected === "function") onConnected(frame);
   };
 
@@ -45,10 +75,10 @@ export function connectStomp(wsUrl, token, onConnected) {
     console.log("[STOMP] websocket closed", evt);
   };
 
-  // activate 시 연결 시도
-  client.activate();
+  client.activate(); // 연결 시도
 
   _client = client;
+
   return client;
 }
 

@@ -15,6 +15,7 @@ export default function RaceManager({ children, room }) {
 
   const TRACK_LENGTH = 7000;
 
+
   // ----------------------------
   // 유틸
   // ----------------------------
