@@ -1,0 +1,23 @@
+.slide-in {
+  animation: slideIn 0.6s ease-out forwards;
+  transform: translateX(200px);
+  opacity: 0;
+}
+
+@keyframes slideIn {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.exit-appear {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
