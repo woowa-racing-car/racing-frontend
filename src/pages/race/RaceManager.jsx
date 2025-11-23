@@ -12,6 +12,7 @@ export default function RaceManager({ children, room }) {
   const [players, setPlayers] = useState(room?.players || []);
   const [raceCars, setRaceCars] = useState([]);
   const [isReadyToStart, setIsReadyToStart] = useState(true);
+  const [hostId, setHostId] = useState(room?.hostId);
 
   const TRACK_LENGTH = 7000;
 
@@ -87,7 +88,19 @@ export default function RaceManager({ children, room }) {
         try {
           const body = JSON.parse(msg.body);
           const newPlayers = body.data?.players || [];
+          const newHostId = body.data?.hostId || body.data?.room?.hostId;
+          
           setPlayers(newPlayers);
+          
+          // hostId가 변경되었으면 업데이트 (함수형 업데이트로 최신 값과 비교)
+          if (newHostId !== undefined) {
+            setHostId((prevHostId) => {
+              if (prevHostId !== newHostId) {
+                return newHostId;
+              }
+              return prevHostId;
+            });
+          }
 
           setRaceCars((prev) =>
             newPlayers.map((p, idx) => {
@@ -254,7 +267,7 @@ export default function RaceManager({ children, room }) {
   // 렌더
   // ----------------------------
   return (
-    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH, hostId: room?.hostId }}>
+    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH, hostId }}>
       {isReadyToStart && (
         <img
           src={startFlag}
