@@ -60,10 +60,6 @@ export function connectStomp(wsUrl, token, onConnected) {
   client.onConnect = (frame) => {
     console.log("[STOMP] connected");
 
-    _client.subscribe("/user/sub/error", (msg) => {
-      console.warn("[WS ERROR MESSAGE]", msg.body);
-    });
-
     if (typeof onConnected === "function") onConnected(frame);
   };
 

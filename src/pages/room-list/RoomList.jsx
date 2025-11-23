@@ -76,6 +76,11 @@ const RoomList = () => {
         }
       });
 
+      subsRef.current.error = client.subscribe("/user/sub/error", (msg) => {
+        alert("[ERROR]" + JSON.parse(msg.body).message);
+      }
+    );
+
       console.log("[SEND] /pub/rooms");
       client.publish({ destination: "/pub/rooms" });
     }
