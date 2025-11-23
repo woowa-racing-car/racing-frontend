@@ -11,8 +11,21 @@ export default function RacePage() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // 경로가 /race/로 시작하지 않으면 즉시 렌더링하지 않음
+  // 브라우저 뒤로 가기 시 React Router가 다른 컴포넌트를 렌더링하도록 함
+  if (!location.pathname.startsWith("/race/")) {
+    return null;
+  }
+
   const joinedRoom = location.state?.room;
   const leaveSent = useRef(false); // ⭐ leave 중복 발송 방지용
+
+  // location.state가 없으면 (뒤로 가기 등) 룸 리스트로 리다이렉트
+  useEffect(() => {
+    if (location.pathname.startsWith("/race/") && joinedRoom === undefined && price) {
+      navigate(`/rooms/${price}`, { replace: true });
+    }
+  }, [location.pathname, joinedRoom, navigate, price]);
 
   if (joinedRoom === undefined) {
     return null;
