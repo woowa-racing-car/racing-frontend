@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaChevronLeft, FaHome, FaUserCircle, FaCoins } from "react-icons/fa";
 import { Container, Row, Col } from "react-bootstrap";
 
-const CommonHeader = ({ userName = "USER", coin = 0 }) => {
+const CommonHeader = ({ userName = "USER", coin = 0, onBack }) => {
   const navigate = useNavigate();
 
   return (
@@ -15,7 +15,7 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
               size={40}
               color="white"
               style={styles.icon}
-              onClick={() => navigate(-1)}
+              onClick={() => onBack ? onBack() : navigate(-1)}
             />
             <FaHome
               size={40}

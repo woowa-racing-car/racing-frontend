@@ -206,14 +206,22 @@ export default function RaceManager({ children, room }) {
 
     if (!client.connected) {
       const prev = client.onConnect;
-      client.onConnect = (frame) => {
+      let handlerCalled = false; // 중복 호출 방지
+      const ourHandler = (frame) => {
         if (typeof prev === "function") prev(frame);
-        doSubscribe();
+        if (!handlerCalled) {
+          handlerCalled = true;
+          doSubscribe();
+        }
       };
+      client.onConnect = ourHandler;
 
       return () => {
         if (typeof cleanupFn === "function") cleanupFn();
-        client.onConnect = prev;
+        // 우리가 설정한 핸들러인 경우에만 복원
+        if (client && client.onConnect === ourHandler) {
+          client.onConnect = prev;
+        }
       };
     }
 

@@ -13,6 +13,19 @@ export default function RacePage() {
 
   const joinedRoom = location.state?.room;
   const leaveSent = useRef(false); // ⭐ leave 중복 발송 방지용
+  const firstCleanup = useRef(true); // ⭐ StrictMode cleanup 방지용
+  const prevRoomIdRef = useRef(null);
+
+  const roomId = joinedRoom?.roomId;
+
+  // roomId가 바뀔 때마다 ref 리셋
+  useEffect(() => {
+    if (roomId !== prevRoomIdRef.current) {
+      leaveSent.current = false;
+      firstCleanup.current = true;
+      prevRoomIdRef.current = roomId;
+    }
+  }, [roomId]);
 
   if (joinedRoom === undefined) {
     return null;
@@ -22,12 +35,9 @@ export default function RacePage() {
     return <div style={{ color: "white" }}>방 정보가 없습니다.</div>;
   }
 
-  const roomId = joinedRoom?.roomId;
-
   // ======================================================
   // (1) 페이지 떠날 때 /pub/room/leave (완전 안정 버전)
   // ======================================================
-  const firstCleanup = useRef(true);
 
   useEffect(() => {
     if (!roomId) return;
@@ -57,7 +67,10 @@ export default function RacePage() {
       }
 
       // ⭐ 실제로 페이지 떠날 때만 leave 실행됨
-      sendLeave();
+      // 비동기로 처리하여 navigate를 블로킹하지 않음
+      setTimeout(() => {
+        sendLeave();
+      }, 0);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [location.pathname, roomId]);
@@ -93,7 +106,8 @@ export default function RacePage() {
         background: "#fff",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        zIndex: 900
       }}
     >
       <div
@@ -112,6 +126,11 @@ export default function RacePage() {
             )?.nickname || "유저"
           }
           coin={1200}
+          onBack={() => {
+            // 항상 해당 가격대의 /rooms/:price로 명시적 이동
+            // replace: false로 하여 히스토리에 남기고, 즉시 이동 보장
+            navigate(`/rooms/${price}`, { replace: false });
+          }}
         />
 
         <RaceManager client={client} room={joinedRoom}>
