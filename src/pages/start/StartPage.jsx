@@ -6,11 +6,14 @@ import StartBackground from "./StartBackground";
 import StartButton from "./StartButton";
 import StartScoreBoard from "./StartScoreBoard";
 import CommonHeader from "../../components/CommonHeader";
+import { useUser } from "../../context/UserContext";
 
 export default function StartPage() {
   const navigate = useNavigate();
+  const {fetchUser}=useUser();
 
   const [winCount, setWinCount]=useState(0);
+  const [drawCount, setDrawCount]=useState(0);
   const [loseCount, setLoseCount]=useState(0);
   const [winRate, setWinRate]=useState(0);
 
@@ -22,6 +25,8 @@ export default function StartPage() {
       navigate("/"); 
       return;
     }
+    
+    fetchUser();
 
     const fetchStartInfo=async()=>{
       try{
@@ -37,6 +42,7 @@ export default function StartPage() {
         const result=data.data;
 
         setWinCount(result.winCount);
+        setDrawCount(result.drawCount);
         setLoseCount(result.loseCount);
 
         const winRate=result.winRate.toFixed(1);
@@ -50,7 +56,7 @@ export default function StartPage() {
     };
 
     fetchStartInfo();
-  }, [navigate]);
+  }, [navigate, fetchUser]);
 
   const handleStartClick = () => {
     navigate("/start-transition");  
@@ -91,6 +97,7 @@ export default function StartPage() {
         >
           <StartScoreBoard 
             wins={winCount} 
+            draws={drawCount}
             losses={loseCount} 
             winRate={winRate} />
         </div>

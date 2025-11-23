@@ -2,9 +2,14 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft, FaHome, FaUserCircle, FaCoins } from "react-icons/fa";
 import { Container, Row, Col } from "react-bootstrap";
+import { useUser } from "../context/UserContext";
 
-const CommonHeader = ({ userName = "USER", coin = 0 }) => {
+const CommonHeader = () => {
+  const {user}=useUser();
+
   const navigate = useNavigate();
+
+  if(!user.isLoaded) return null;
 
   return (
     <div style={styles.headerWrapper}>
@@ -49,19 +54,19 @@ const CommonHeader = ({ userName = "USER", coin = 0 }) => {
               size={40}
               color="white"
               style={{ ...styles.icon, marginLeft: "15px" }}
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/start")}
             />
           </Col>
 
           <Col xs="auto" className="d-flex align-items-center" style={{ gap: "18px" }}>
-            <div style={styles.infoBox}>
+            <div style={styles.infoBox} onClick={()=>navigate("/mypage")}>
               <FaUserCircle size={32} color="white" />
-              <span style={styles.infoText}>{userName}</span>
+              <span style={styles.infoText}>{user.name}</span>
             </div>
 
             <div style={{ ...styles.infoBox, background: "rgba(255, 215, 0, 0.25)" }}>
               <FaCoins size={30} color="#ffd700" />
-              <span style={styles.infoText}>{coin}</span>
+              <span style={styles.infoText}>{user.coin}</span>
             </div>
           </Col>
         </Row>
