@@ -106,7 +106,7 @@ export default function MainSignboard() {
           localStorage.setItem("memberId", memberId);
           setMessage("로그인 성공!");
 
-          navigate("/start");
+          waitForVideoThenNavigate();
         } else {
           setMessage("로그인 성공 (토큰 없음)");
         }
