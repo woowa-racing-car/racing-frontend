@@ -39,10 +39,19 @@ export const UserProvider =({children}) =>{
     };
 
     useEffect(() => {
+      if (location.pathname === "/") {
+        setUser((prev) => ({ ...prev, isLoaded: true }));
+        return;
+      }
+
       const token = localStorage.getItem("token");
-      if (!token) return;   // 토큰 없으면 fetchUser 실행 안함
+      if (!token) {
+        setUser((prev) => ({ ...prev, isLoaded: true }));
+        return;
+      }
+
       fetchUser();
-    }, []);
+    }, [location.pathname]);
 
     return (
         <Usercontext.Provider value={{user, fetchUser, updateCoin, updateUser}}>

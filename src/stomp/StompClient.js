@@ -1,4 +1,5 @@
 // src/stomp/StompClient.js
+
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
@@ -6,7 +7,7 @@ let _client = null;
 let _wsUrl = null;
 let _token = null;
 
-const subscriptions = {}; 
+const subscriptions = {};
 
 export function getClient() {
   return _client;
@@ -34,39 +35,20 @@ export function subscribe(destination, callback) {
     callback?.(body);
   });
 
-  // ⭐ 자동으로 subscriptions에 저장
+  // ⭐ 자동 저장
   subscriptions[destination] = sub;
-
   console.log("[STOMP] Subscribed:", destination);
+
   return sub;
 }
 
-// ---- 추가: 대기열 ----
-const publishQueue = [];
-
-// ---- publish 보장 함수 ----
-export function safePublish(destination, body = null) {
-  const client = getClient();
-  const payload = { destination, body };
-
-  // 연결 안 되어 있으면 → 큐에 저장 후 return
-  if (!client || !client.connected) {
-    console.log("[STOMP] not connected → queued:", destination);
-    publishQueue.push(payload);
-    return;
+export function connectStomp(wsUrl, token, onConnected) {
+  if (_client && _wsUrl === wsUrl) {
+    return _client;
   }
-
-  // 연결되어 있으면 바로 publish
-  client.publish(payload);
-}
-
-// ---- connect 수정 ----
-export function connectStomp(wsUrl, token) {
-  if (_client && _wsUrl === wsUrl) return _client;
 
   _wsUrl = wsUrl;
   _token = token;
-
   const socket = new SockJS(wsUrl);
 
   const client = new Client({
@@ -76,20 +58,14 @@ export function connectStomp(wsUrl, token) {
 
   client.onConnect = () => {
     console.log("[STOMP] connected");
-
-    // ⭐ 큐 비워서 순차적으로 publish 실행
-    while (publishQueue.length > 0) {
-      const msg = publishQueue.shift();
-      console.log("[STOMP] sending queued:", msg.destination);
-      client.publish(msg);
-    }
+    onConnected?.();  // ⬅ 콜백 실행
   };
 
   _client = client;
   client.activate();
+
   return client;
 }
-
 
 // optional helper to disconnect (테스트/cleanup용)
 export function disconnectStomp() {
