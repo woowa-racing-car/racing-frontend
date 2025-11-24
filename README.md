@@ -189,12 +189,12 @@ npm run preview
 The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
 
 ### 환경 변수
-
 ```
 VITE_BASE_URL=https://api.wracing.com
 VITE_WS_URL=https://api.wracing.com/ws-stomp
-
 ```
+
+
 
 ### 5. 피드백 적용
 ### 1주차 피드백 적용
