@@ -1,21 +1,25 @@
 // src/pages/race/RaceManager.jsx
 import { createContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getClient } from "../../stomp/StompClient";
 import blueCar from "../../assets/images/bluecar-icon.svg";
 import greenCar from "../../assets/images/greencar-icon.svg";
 import redCar from "../../assets/images/redcar-icon.svg";
 import startFlag from "../../assets/images/race-start-flag.svg";
 
+import GameResultPage from "../result/GameResultPage"; // 추가
+
 export const RaceContext = createContext();
 
 export default function RaceManager({ children, room }) {
+  const navigate = useNavigate(); // 추가
   const [players, setPlayers] = useState(room?.players || []);
   const [raceCars, setRaceCars] = useState([]);
   const [isReadyToStart, setIsReadyToStart] = useState(true);
   const [hostId, setHostId] = useState(room?.hostId);
+  const [gameResult, setGameResult] = useState(null); // 추가
 
   const TRACK_LENGTH = 7000;
-
 
   // ----------------------------
   // 유틸
@@ -75,10 +79,7 @@ export default function RaceManager({ children, room }) {
   // ----------------------------
   function subscribeRoomAndTickAndEvent() {
     const client = getClient();
-    if (!client) {
-      console.warn("[subscribe] no client");
-      return () => {};
-    }
+    if (!client) return () => {};
 
     const unsubscribers = [];
 
@@ -89,17 +90,10 @@ export default function RaceManager({ children, room }) {
           const body = JSON.parse(msg.body);
           const newPlayers = body.data?.players || [];
           const newHostId = body.data?.hostId || body.data?.room?.hostId;
-          
           setPlayers(newPlayers);
-          
-          // hostId가 변경되었으면 업데이트 (함수형 업데이트로 최신 값과 비교)
+
           if (newHostId !== undefined) {
-            setHostId((prevHostId) => {
-              if (prevHostId !== newHostId) {
-                return newHostId;
-              }
-              return prevHostId;
-            });
+            setHostId((prev) => (prev !== newHostId ? newHostId : prev));
           }
 
           setRaceCars((prev) =>
@@ -123,19 +117,16 @@ export default function RaceManager({ children, room }) {
       });
       unsubscribers.push(() => subRoom.unsubscribe());
 
-      // 2) /sub/game/{roomId}/tick 정보 수신
+      // 2) /sub/game/{roomId}/tick
       const subTick = client.subscribe(`/sub/game/${room.roomId}/tick`, (msg) => {
         try {
           const body = JSON.parse(msg.body);
           const statusList = body.data?.gameStatus || [];
 
-          console.log(body);
-
           setRaceCars((prev) =>
             prev.map((car) => {
               const s = statusList.find((st) => st.memberId === car.memberId);
               if (!s) return car;
-
               const targetX = (s.carPosition / 100) * TRACK_LENGTH;
               return { ...car, targetX };
             })
@@ -146,7 +137,7 @@ export default function RaceManager({ children, room }) {
       });
       unsubscribers.push(() => subTick.unsubscribe());
 
-      // 3) 게임 이벤트
+      // 3) /sub/game/{roomId}/event
       const subEvent = client.subscribe(`/sub/game/${room.roomId}/event`, (msg) => {
         try {
           const body = JSON.parse(msg.body);
@@ -155,7 +146,13 @@ export default function RaceManager({ children, room }) {
           if (type === "GAME_STARTED") {
             setIsReadyToStart(false);
           } else if (type === "GAME_FINISHED") {
-            console.log("[GAME_FINISHED]", body);
+            const playerRanks = body.data.playerRanks || [];
+            const playersForResult = playerRanks.map((p) => ({
+              rank: p.rank,
+              name: p.nickname,
+              score: p.rank === 1 ? body.data.roomTier : p.rank === 2 ? 0 : -body.data.roomTier,
+            }));
+            setGameResult(playersForResult);
           }
         } catch (e) {
           console.warn("[subEvent] parse error", e);
@@ -166,13 +163,7 @@ export default function RaceManager({ children, room }) {
       console.warn("subscribeRoomAndTickAndEvent error", e);
     }
 
-    return () => {
-      unsubscribers.forEach((u) => {
-        try {
-          u();
-        } catch (e) {}
-      });
-    };
+    return () => unsubscribers.forEach((u) => { try { u(); } catch {} });
   }
 
   // ----------------------------
@@ -192,7 +183,6 @@ export default function RaceManager({ children, room }) {
 
     const initialPlayers = room.players;
     setPlayers(initialPlayers);
-
     setRaceCars(
       initialPlayers.map((p, idx) => ({
         memberId: p.memberId,
@@ -207,16 +197,12 @@ export default function RaceManager({ children, room }) {
     );
 
     let cleanupFn = null;
-
     const doSubscribe = () => {
       if (typeof cleanupFn === "function") cleanupFn();
       cleanupFn = subscribeRoomAndTickAndEvent();
     };
 
-    if (!client) {
-      console.warn("[RaceManager] waiting for stomp connect");
-      return () => {};
-    }
+    if (!client) return () => {};
 
     if (!client.connected) {
       const prev = client.onConnect;
@@ -224,41 +210,29 @@ export default function RaceManager({ children, room }) {
         if (typeof prev === "function") prev(frame);
         doSubscribe();
       };
-
-      return () => {
-        if (typeof cleanupFn === "function") cleanupFn();
-        client.onConnect = prev;
-      };
+      return () => { if (typeof cleanupFn === "function") cleanupFn(); client.onConnect = prev; };
     }
 
     doSubscribe();
-
-    return () => {
-      if (typeof cleanupFn === "function") cleanupFn();
-    };
+    return () => { if (typeof cleanupFn === "function") cleanupFn(); };
   }, [room?.roomId]);
 
   // ----------------------------
-  // 애니메이션 루프 (부드러운 이동)
+  // 애니메이션 루프
   // ----------------------------
   useEffect(() => {
     let frame;
-
     const animate = () => {
       setRaceCars((prev) =>
         prev.map((car) => {
           if (car.currentX === car.targetX) return car;
-
           const diff = car.targetX - car.currentX;
           const newX = car.currentX + diff * 0.15;
-
           return { ...car, currentX: newX };
         })
       );
-
       frame = requestAnimationFrame(animate);
     };
-
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, []);
@@ -284,6 +258,13 @@ export default function RaceManager({ children, room }) {
       )}
 
       {children}
+
+      {gameResult && (
+        <GameResultPage
+          players={gameResult}
+          onExit={() => (navigate(`/rooms/${room.roomTier}`))}
+        />
+      )}
     </RaceContext.Provider>
   );
 }

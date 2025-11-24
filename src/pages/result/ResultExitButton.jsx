@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ExitImg from "../../assets/images/result-exit-button.svg";
+import { getClient } from "../../stomp/StompClient";
 
 export default function ResultExitButton({ delay = 0 }) {
   const navigate = useNavigate();
@@ -17,7 +18,10 @@ export default function ResultExitButton({ delay = 0 }) {
         width: "170px",
         cursor: "pointer",
       }}
-      onClick={() => navigate("/start")}
+      onClick={() => {
+        // 뒤로가기 방지
+        navigate(-1, { replace: true });
+      }}
     />
   );
 }

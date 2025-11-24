@@ -2,16 +2,10 @@ import PlayerResultCard from "./PlayerResultCard";
 import ResultExitButton from "./ResultExitButton";
 import ResultBackground from "./ResultBackground";
 
-const CARD_DELAY = 0.3;       
-const EXIT_EXTRA_DELAY = 0.3;  
+const CARD_DELAY = 0.3;
+const EXIT_EXTRA_DELAY = 0.3;
 
-export default function GameResultPage() {
-  const players = [
-    { rank: 1, name: "지환", score: 1000 },
-    { rank: 2, name: "지명", score: 0 },
-    { rank: 3, name: "아름", score: -1000 },
-  ];
-
+export default function GameResultPage({ players, onExit }) {
   const exitDelay = players.length * CARD_DELAY + EXIT_EXTRA_DELAY;
 
   return (
@@ -23,6 +17,7 @@ export default function GameResultPage() {
         justifyContent: "center",
         alignItems: "center",
         background: "white",
+        zIndex: 1000, // 기존 화면 위에 오버레이
       }}
     >
       <div
@@ -50,12 +45,12 @@ export default function GameResultPage() {
             <PlayerResultCard
               key={player.rank}
               {...player}
-              delay={index * CARD_DELAY} 
+              delay={index * CARD_DELAY}
             />
           ))}
         </div>
 
-        <ResultExitButton delay={exitDelay} />
+        <ResultExitButton delay={exitDelay} onClick={onExit} />
       </div>
     </div>
   );

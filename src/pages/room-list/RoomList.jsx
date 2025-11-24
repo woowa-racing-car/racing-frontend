@@ -1,4 +1,4 @@
-// src/pages/room/RoomList.jsx (수정된 주요 부분 전체 파일)
+// src/pages/room/RoomList.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { connectStomp, getClient, getWsUrl } from "../../stomp/StompClient";
@@ -23,7 +23,6 @@ const RoomList = () => {
 
   const subsRef = useRef({});
 
-
   const rawToken = localStorage.getItem("token") || "";
   const token = rawToken.startsWith("Bearer ") ? rawToken.substring(7) : rawToken;
   const wsUrl = `${import.meta.env.VITE_BASE_URL}/ws?token=${token}&roomTier=${roomTier}`;
@@ -34,12 +33,10 @@ const RoomList = () => {
     // 최초 연결 또는 wsUrl 변경 시
     if (!client || getWsUrl() !== wsUrl) {
       console.log("[STOMP] Connecting...");
-
       connectStomp(wsUrl, token, () => {
         console.log("[STOMP] connected (fresh)");
         setupSubscriptions();
       });
-
       return;
     }
 
@@ -55,7 +52,6 @@ const RoomList = () => {
     // 이미 연결 완료 상태
     setupSubscriptions();
 
-
     function setupSubscriptions() {
       if (subsRef.current.rooms) return; // 중복 방지
 
@@ -64,7 +60,7 @@ const RoomList = () => {
       subsRef.current.rooms = client.subscribe(roomsSubPath, (msg) => {
         const body = JSON.parse(msg.body);
         console.log(`[RECEIVED] ${roomsSubPath}`, body);
-        setRooms(prev => ({ ...prev, [roomTier]: body.data.rooms }));
+        setRooms((prev) => ({ ...prev, [roomTier]: body.data.rooms }));
       });
 
       subsRef.current.create = client.subscribe("/user/sub/room/create", (msg) => {
@@ -88,8 +84,10 @@ const RoomList = () => {
     }
 
     return () => {
-      Object.values(subsRef.current).forEach(sub => {
-        try { sub.unsubscribe(); } catch {}
+      Object.values(subsRef.current).forEach((sub) => {
+        try {
+          sub.unsubscribe();
+        } catch {}
       });
       subsRef.current = {};
     };
@@ -101,12 +99,11 @@ const RoomList = () => {
       console.log("[ERROR] STOMP not connected");
       return;
     }
-
     client.publish({ destination: "/pub/room/create" });
     console.log("[SEND] /pub/room/create");
   };
 
-  // pagination render ... (원래 코드와 동일)
+  // pagination render
   const roomList = rooms[roomTier] || [];
   const totalPages = Math.ceil(roomList.length / ITEMS_PER_PAGE);
   const startIndex = page * ITEMS_PER_PAGE;
@@ -116,24 +113,68 @@ const RoomList = () => {
   const coin = 350;
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "white", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ position: "relative", width: "1200px", height: "675px", background: "black", overflow: "hidden" }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          width: "1200px",
+          height: "675px",
+          background: "black",
+          overflow: "hidden",
+        }}
+      >
         <div style={{ position: "absolute", top: 0, width: "100%", zIndex: 30 }}>
           <CommonHeader userName={userName} coin={coin} />
         </div>
 
         <RoomListBackground />
 
-        <div style={{ position: "absolute", top: "75px", left: "100px", width: "1000px", height: "570px", zIndex: 20 }}>
+        <div
+          style={{
+            position: "absolute",
+            top: "75px",
+            left: "100px",
+            width: "1000px",
+            height: "570px",
+            zIndex: 20,
+          }}
+        >
           <RoomListWoodBoard>
-            <h1 style={{ position: "relative", top: "29px", marginBottom: "15px", color: "#43220c", fontFamily: "Giants", fontSize: "40px", marginLeft: "200px" }}>
+            <h1
+              style={{
+                position: "relative",
+                top: "29px",
+                marginBottom: "15px",
+                color: "#43220c",
+                fontFamily: "Giants",
+                fontSize: "40px",
+                marginLeft: "200px",
+              }}
+            >
               {roomTier}원 방
             </h1>
 
             <div style={{ position: "relative", marginTop: "90px", height: "420px" }}>
               <div style={{ paddingBottom: "120px" }}>
                 {visibleRooms.length === 0 ? (
-                  <div style={{ marginTop: "30px", textAlign: "center", fontSize: "24px", color: "#43220c" }}>
+                  <div
+                    style={{
+                      marginTop: "30px",
+                      textAlign: "center",
+                      fontSize: "24px",
+                      color: "#43220c",
+                    }}
+                  >
                     현재 진행 중인 방이 없습니다.
                   </div>
                 ) : (
@@ -150,8 +191,11 @@ const RoomList = () => {
                           console.log("[ERROR] STOMP is not connected. Cannot join room.");
                           return;
                         }
-                        client.publish({ destination: "/pub/room/join", body: JSON.stringify({ roomId: room.roomId }) });
-                        console.log("[SEND] /pub/room/join roomId: ",room.roomId);
+                        client.publish({
+                          destination: "/pub/room/join",
+                          body: JSON.stringify({ roomId: room.roomId }),
+                        });
+                        console.log("[SEND] /pub/room/join roomId: ", room.roomId);
                       }}
                     />
                   ))
@@ -159,20 +203,51 @@ const RoomList = () => {
               </div>
 
               <div style={{ position: "absolute", bottom: 30, left: 0, width: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "25px", marginBottom: "10px" }}>
-                  <span onClick={() => hasPrev && setPage(page - 1)} style={{ fontSize: "36px", fontWeight: 900, cursor: hasPrev ? "pointer" : "default", opacity: hasPrev ? 1 : 0.3, color: "#43220c" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "25px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <span
+                    onClick={() => hasPrev && setPage(page - 1)}
+                    style={{
+                      fontSize: "36px",
+                      fontWeight: 900,
+                      cursor: hasPrev ? "pointer" : "default",
+                      opacity: hasPrev ? 1 : 0.3,
+                      color: "#43220c",
+                    }}
+                  >
                     {"<"}
                   </span>
                   <span style={{ fontSize: "28px", fontWeight: 800, color: "#43220c" }}>
                     {totalPages === 0 ? "0 / 0" : `${page + 1} / ${totalPages}`}
                   </span>
-                  <span onClick={() => hasNext && setPage(page + 1)} style={{ fontSize: "36px", fontWeight: 900, cursor: hasNext ? "pointer" : "default", opacity: hasNext ? 1 : 0.3, color: "#43220c" }}>
+                  <span
+                    onClick={() => hasNext && setPage(page + 1)}
+                    style={{
+                      fontSize: "36px",
+                      fontWeight: 900,
+                      cursor: hasNext ? "pointer" : "default",
+                      opacity: hasNext ? 1 : 0.3,
+                      color: "#43220c",
+                    }}
+                  >
                     {">"}
                   </span>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "center" }}>
-                  <RoomListCreateButton onClick={() => { handleCreateRoom(); /* navigate can be done from server join event instead */ }} />
+                  <RoomListCreateButton
+                    onClick={() => {
+                      handleCreateRoom();
+                      // navigate can be done from server join event instead
+                    }}
+                  />
                 </div>
               </div>
             </div>
