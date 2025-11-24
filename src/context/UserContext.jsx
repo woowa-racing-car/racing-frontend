@@ -1,4 +1,4 @@
-import {createContext, useContext, useState, useEffect} from "react";
+import {createContext, useContext, useState, useEffect, useCallback} from "react";
 import axios from "axios";
 
 const Usercontext=createContext(null);
@@ -6,7 +6,7 @@ const Usercontext=createContext(null);
 export const UserProvider =({children}) =>{
     const [user, setUser]=useState({name:"", coin:0, isLoaded:false});
 
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -25,7 +25,7 @@ export const UserProvider =({children}) =>{
       console.error("사용자 정보 조회 실패:", err);
       setUser((prev) => ({ ...prev, isLoaded: true }));
     }
-  };
+  }, []);
 
     const updateCoin = (coin)=>{
         setUser((prev)=>({...prev, coin}));

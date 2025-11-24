@@ -49,9 +49,9 @@ export default function StartPage() {
 
         setWinRate(winRate);
       } catch(error){
-        console.error("API 호출 실패: ",err);
+        console.error("API 호출 실패: ",error);
         alert("로그인이 만료되었거나, 인증에 실패하였습니다.");
-        negivate("/");
+        navigate("/");
       }
     };
 
