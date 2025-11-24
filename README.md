@@ -186,7 +186,7 @@ npm run dev      # http://localhost:5173
 npm run build
 npm run preview
 
-```
+The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
 
 ### 환경 변수
 
@@ -195,3 +195,54 @@ VITE_BASE_URL=https://api.wracing.com
 VITE_WS_URL=https://api.wracing.com/ws-stomp
 
 ```
+
+### 5. 피드백 적용
+
+# <1주차 피드백 적용>
+
+### 작은 도전 유지
+
+싱글톤 GameManager를 시도했다가 테스트 격리 문제를 발견하고, 결국 React 함수형 컴포넌트로 유지하는 방향으로 전환했다. 새로운 시도를 해보고 실제로 문제를 겪으며 더 좋은 구조로 돌아올 수 있었다.
+
+### ✔ 디버거 적극 활용
+
+STOMP 이벤트 흐름을 분석할 때 `console.log`를 찍기보다 브레이크포인트 기반 디버깅을 사용해 흐름을 명확히 파악했다.
+
+### ✔ 의도를 드러내는 이름 짓기
+
+chooseImage, safePublish처럼 역할이 바로 보이는 이름으로 함수 네이밍을 개선했다.
+
+---
+
+# <2주차 피드백 적용>
+
+### 함수 분리 원칙 적용
+
+STOMP 처리 로직을 chooseImage / chooseColor / safePublish / subscribeRoomAndTickAndEvent 등으로 나눠 각 함수가 한 가지 역할만 수행하도록 구성했다.
+
+### ✔ 상수화로 하드코딩 제거
+
+RaceTrack의 화면·트랙 값들을 SCREEN_WIDTH, TRACK_LENGTH 같은 의미 있는 상수로 분리해 가독성과 유지보수성을 높였다.
+
+### ✔ 공용 컴포넌트 분리
+
+MainInput을 독립된 입력 컴포넌트로 만들고, 입력/레이블 스타일을 한 곳에서 관리하도록 하여 테스트 용이성과 재사용성을 확보했다.
+
+---
+
+# ✅ <3주차 피드백 적용>
+
+###  15라인 초과 함수 인지 및 분리 계획
+
+subscribeRoomAndTickAndEvent, useEffect 내부가 15줄을 넘고 여러 책임을 한꺼번에 수행하는 점을 확인했다.
+→ subscribeRoom / subscribeTick / subscribeEvent로 분리하고, useEffect도 초기화·구독·클린업 단계로 나누는 리팩터링 방향을 잡았다.
+
+### 예외 처리 보완 필요성 확인
+
+STOMP 메시지 파싱 실패, memberId가 NaN이 되는 상황 등 예외 상황을 방어하기 위한 기본값·검증 로직이 필요함을 발견했다.
+
+### UI 로직과 비즈니스 로직 분리 필요
+
+RaceManager가 STOMP 연결(도메인)과 UI 렌더링을 함께 담당하고 있고, RaceTrack도 내 차 찾기(도메인)와 그리기(UI) 로직이 혼재되어 있음을 확인.
+
+→ 게임 진행은 훅(useRaceSession 등), UI는 컴포넌트에서 렌더만 담당하도록 SRP 기반 구조 분리 계획을 세웠다.
