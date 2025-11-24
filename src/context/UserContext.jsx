@@ -39,19 +39,19 @@ export const UserProvider =({children}) =>{
     };
 
     useEffect(() => {
-    if (location.pathname === "/") {
-      setUser((prev) => ({ ...prev, isLoaded: true }));
-      return;
-    }
+      if (location.pathname === "/") {
+        setUser((prev) => ({ ...prev, isLoaded: true }));
+        return;
+      }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setUser((prev) => ({ ...prev, isLoaded: true }));
-      return;
-    }
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUser((prev) => ({ ...prev, isLoaded: true }));
+        return;
+      }
 
-    fetchUser();
-  }, [location.pathname]);
+      fetchUser();
+    }, [location.pathname]);
 
     return (
         <Usercontext.Provider value={{user, fetchUser, updateCoin, updateUser}}>
