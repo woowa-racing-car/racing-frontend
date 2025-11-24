@@ -83,9 +83,8 @@ const RoomList = () => {
         alert(JSON.parse(msg.body).message);
       });
 
-      // ⬅ 여기서만 pub 실행됨
-      console.log("[SEND] /pub/rooms");
-      client.publish({ destination: "/pub/rooms" });
+      // console.log("[SEND] /pub/rooms");
+      // client.publish({ destination: "/pub/rooms" });
     }
 
     return () => {
