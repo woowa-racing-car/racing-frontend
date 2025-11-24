@@ -1,7 +1,7 @@
 // src/pages/room/RoomList.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { connectStomp, getClient, getWsUrl } from "../../stomp/StompClient";
+import { connectStomp, disconnectStomp, getClient, getWsUrl } from "../../stomp/StompClient";
 
 import CommonHeader from "../../components/CommonHeader";
 import RoomListBackground from "./RoomListBackground";
@@ -28,32 +28,31 @@ const RoomList = () => {
   const wsUrl = `${import.meta.env.VITE_BASE_URL}/ws?token=${token}&roomTier=${roomTier}`;
 
   useEffect(() => {
-    const client = getClient();
+    let client = getClient();
 
     // 최초 연결 또는 wsUrl 변경 시
     if (!client || getWsUrl() !== wsUrl) {
       console.log("[STOMP] Connecting...");
+
       connectStomp(wsUrl, token, () => {
-        console.log("[STOMP] connected (fresh)");
-        setupSubscriptions();
+        const connected = getClient();
+        if (!connected) {
+          console.error("[STOMP] onConnect but client is null");
+          return;
+        }
+        setupSubscriptions(connected);
       });
+
       return;
     }
 
-    // client는 있으나 아직 연결 안됨
-    if (!client.connected) {
-      client.onConnect = () => {
-        console.log("[STOMP] connected (late)");
-        setupSubscriptions();
-      };
-      return;
-    }
+    function setupSubscriptions(client) {
+      if (!client) {
+        console.error("[STOMP] setupSubscriptions called with null client");
+        return;
+      }
 
-    // 이미 연결 완료 상태
-    setupSubscriptions();
-
-    function setupSubscriptions() {
-      if (subsRef.current.rooms) return; // 중복 방지
+      if (subsRef.current.rooms) return; // 중복 구독 방지
 
       const roomsSubPath = `/sub/rooms/${roomTier}`;
 
@@ -78,9 +77,6 @@ const RoomList = () => {
       subsRef.current.error = client.subscribe("/user/sub/error", (msg) => {
         alert(JSON.parse(msg.body).message);
       });
-
-      // console.log("[SEND] /pub/rooms");
-      // client.publish({ destination: "/pub/rooms" });
     }
 
     return () => {
@@ -89,9 +85,12 @@ const RoomList = () => {
           sub.unsubscribe();
         } catch {}
       });
+
       subsRef.current = {};
+      disconnectStomp();
     };
   }, [roomTier]);
+
 
   const handleCreateRoom = () => {
     const client = getClient();
