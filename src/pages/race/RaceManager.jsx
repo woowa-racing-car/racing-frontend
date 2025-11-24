@@ -1,5 +1,5 @@
 // src/pages/race/RaceManager.jsx
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useRef } from "react";
 import { getClient } from "../../stomp/StompClient";
 import blueCar from "../../assets/images/bluecar-icon.svg";
 import greenCar from "../../assets/images/greencar-icon.svg";
@@ -8,11 +8,12 @@ import startFlag from "../../assets/images/race-start-flag.svg";
 
 export const RaceContext = createContext();
 
-export default function RaceManager({ children, room }) {
+export default function RaceManager({ children, room, onGameFinished }) {
   const [players, setPlayers] = useState(room?.players || []);
   const [raceCars, setRaceCars] = useState([]);
   const [isReadyToStart, setIsReadyToStart] = useState(true);
   const [hostId, setHostId] = useState(room?.hostId);
+  const [isRaceFinished, setIsRaceFinished] = useState(false);
 
   const TRACK_LENGTH = 7000;
 
@@ -73,6 +74,48 @@ export default function RaceManager({ children, room }) {
   // ----------------------------
   // 구독 로직
   // ----------------------------
+  const hasNavigatedToResult = useRef(false);
+  const cleanupRef = useRef(null);
+
+  function deriveEventType(body) {
+    if (!body) return null;
+
+    const candidates = [
+      body.data?.type,
+      body.data?.eventType,
+      body.data?.gameEventType,
+      body.type,
+      body.eventType,
+      body.gameEventType,
+    ];
+
+    return candidates.find(Boolean) || null;
+  }
+
+  function isFinishedEvent(body) {
+    const type = deriveEventType(body);
+    if (type && String(type).toUpperCase() === "GAME_FINISHED") return true;
+
+    const status = body?.data?.status || body?.data?.gameStatus;
+    if (status && String(status).toUpperCase() === "FINISHED") return true;
+
+    return false;
+  }
+
+  function extractResultPayload(body) {
+    if (!body) return null;
+    const data = body.data || body.payload || body.result || null;
+    if (!data) return null;
+
+    return (
+      data.gameResult ||
+      data.result ||
+      data.payload ||
+      data.gameData ||
+      data
+    );
+  }
+
   function subscribeRoomAndTickAndEvent() {
     const client = getClient();
     if (!client) {
@@ -129,8 +172,6 @@ export default function RaceManager({ children, room }) {
           const body = JSON.parse(msg.body);
           const statusList = body.data?.gameStatus || [];
 
-          console.log(body);
-
           setRaceCars((prev) =>
             prev.map((car) => {
               const s = statusList.find((st) => st.memberId === car.memberId);
@@ -150,12 +191,28 @@ export default function RaceManager({ children, room }) {
       const subEvent = client.subscribe(`/sub/game/${room.roomId}/event`, (msg) => {
         try {
           const body = JSON.parse(msg.body);
-          const type = body.type;
 
-          if (type === "GAME_STARTED") {
+          if (deriveEventType(body) === "GAME_STARTED") {
             setIsReadyToStart(false);
-          } else if (type === "GAME_FINISHED") {
+            return;
+          }
+
+          if (isFinishedEvent(body)) {
+            if (hasNavigatedToResult.current) return;
+            hasNavigatedToResult.current = true;
+
+            const payload = extractResultPayload(body) || body.data || {};
+            setIsRaceFinished(true);
+
+            if (typeof cleanupRef.current === "function") {
+              cleanupRef.current();
+              cleanupRef.current = null;
+            }
+
             console.log("[GAME_FINISHED]", body);
+            if (typeof onGameFinished === "function") {
+              onGameFinished(payload);
+            }
           }
         } catch (e) {
           console.warn("[subEvent] parse error", e);
@@ -211,6 +268,7 @@ export default function RaceManager({ children, room }) {
     const doSubscribe = () => {
       if (typeof cleanupFn === "function") cleanupFn();
       cleanupFn = subscribeRoomAndTickAndEvent();
+      cleanupRef.current = cleanupFn;
     };
 
     if (!client) {
@@ -235,7 +293,14 @@ export default function RaceManager({ children, room }) {
 
     return () => {
       if (typeof cleanupFn === "function") cleanupFn();
+      cleanupRef.current = null;
     };
+  }, [room?.roomId, onGameFinished]);
+
+  useEffect(() => {
+    hasNavigatedToResult.current = false;
+    setIsRaceFinished(false);
+    cleanupRef.current = null;
   }, [room?.roomId]);
 
   // ----------------------------
@@ -267,7 +332,7 @@ export default function RaceManager({ children, room }) {
   // 렌더
   // ----------------------------
   return (
-    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH, hostId }}>
+    <RaceContext.Provider value={{ raceCars, TRACK_LENGTH, hostId, isRaceFinished }}>
       {isReadyToStart && (
         <img
           src={startFlag}

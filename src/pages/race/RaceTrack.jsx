@@ -5,11 +5,33 @@ import startLine from "../../assets/images/race-line.svg";
 
 export default function RaceTrack() {
   const canvasRef = useRef(null);
-  const { raceCars = [], TRACK_LENGTH = 7000, hostId } = useContext(RaceContext);
+  const { raceCars = [], TRACK_LENGTH = 7000, hostId, isRaceFinished } =
+    useContext(RaceContext);
   const [nameTags, setNameTags] = useState([]);
+
+  const raceCarsRef = useRef(raceCars);
+  const hostIdRef = useRef(hostId);
+  const carImgCache = useRef(new Map());
+  const frameRef = useRef(null);
 
   const SCREEN_WIDTH = 1200;
   const SCREEN_HEIGHT = 675;
+
+  useEffect(() => {
+    raceCarsRef.current = raceCars;
+
+    raceCars.forEach((car) => {
+      if (!carImgCache.current.has(car.memberId) || carImgCache.current.get(car.memberId).src !== car.img) {
+        const im = new Image();
+        im.src = car.img;
+        carImgCache.current.set(car.memberId, im);
+      }
+    });
+  }, [raceCars]);
+
+  useEffect(() => {
+    hostIdRef.current = hostId;
+  }, [hostId]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,36 +43,27 @@ export default function RaceTrack() {
     const lineImg = new Image();
     lineImg.src = startLine;
 
-    // 👇 carImgs에서도 id → memberId 로 변경
-    const carImgs = raceCars.map((car) => {
-      const im = new Image();
-      im.src = car.img;
-      return { memberId: car.memberId, img: im };
-    });
+    const memberId = Number(localStorage.getItem("memberId"));
 
-    function loop() {
-      // const me = raceCars[0]; // 기준 카메라
-      const me = raceCars.find(car => car.memberId == Number(localStorage.getItem("memberId"))) || raceCars[0];
-      
-      // console.log(me);
+    const drawFrame = () => {
+      const cars = raceCarsRef.current;
+      const currentHostId = hostIdRef.current;
 
+      const me =
+        cars.find((car) => car.memberId === memberId) || cars[0];
       const targetX = SCREEN_WIDTH * 0.35;
-
-      // 🔥 cameraX 계산 시 car.x → car.currentX
       const cameraX = me ? Math.max(0, me.currentX - targetX) : 0;
 
       ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-      // 배경
       if (bg.complete) {
-        const bgWidth = bg.width;
+        const bgWidth = bg.width || SCREEN_WIDTH;
         const offset = -(cameraX % bgWidth);
         for (let i = -1; i < 3; i++) {
           ctx.drawImage(bg, offset + i * bgWidth, 0, bgWidth, SCREEN_HEIGHT);
         }
       }
 
-      // 진행도 바
       const barWidth = 900;
       const barHeight = 10;
       const barX = SCREEN_WIDTH / 2 - barWidth / 2;
@@ -59,8 +72,7 @@ export default function RaceTrack() {
       ctx.fillStyle = "rgba(255,255,255,0.25)";
       ctx.fillRect(barX, barY, barWidth, barHeight);
 
-      raceCars.forEach((car) => {
-        // 🔥 progress 계산 시 car.x → car.currentX
+      cars.forEach((car) => {
         const progress = Math.min(car.currentX / TRACK_LENGTH, 1);
         const dotX = barX + progress * barWidth;
 
@@ -70,25 +82,21 @@ export default function RaceTrack() {
         ctx.fill();
       });
 
-      // 자동차 렌더링
       const newNameTags = [];
-      raceCars.forEach((car) => {
+      cars.forEach((car) => {
         const offsetX = 110;
-
-        // 🔥 drawX 계산 시 car.x → car.currentX
         const drawX = car.currentX - cameraX + offsetX;
 
-        const imgObj = carImgs.find((i) => i.memberId === car.memberId);
-        if (imgObj?.img.complete) {
+        const img = carImgCache.current.get(car.memberId);
+        if (img?.complete) {
           const width = car.width;
-          const ratio = imgObj.img.height / imgObj.img.width;
+          const ratio = img.height / img.width || 1;
           const height = width * ratio;
 
           const y = 180 + car.lane * 105;
-          ctx.drawImage(imgObj.img, drawX, y, width, height);
+          ctx.drawImage(img, drawX, y, width, height);
 
-          // 이름 라벨 위치 저장 (overlay로 표시하기 위해)
-          const isHost = hostId && car.memberId === Number(hostId);
+          const isHost = currentHostId && car.memberId === Number(currentHostId);
           newNameTags.push({
             memberId: car.memberId,
             name: car.name,
@@ -98,13 +106,19 @@ export default function RaceTrack() {
           });
         }
       });
+
       setNameTags(newNameTags);
 
-      requestAnimationFrame(loop);
-    }
+      if (!isRaceFinished) {
+        frameRef.current = requestAnimationFrame(drawFrame);
+      }
+    };
 
-    requestAnimationFrame(loop);
-  }, [raceCars, hostId]);
+    cancelAnimationFrame(frameRef.current);
+    drawFrame();
+
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [TRACK_LENGTH, isRaceFinished]);
 
   return (
     <div style={{ position: "relative", width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}>

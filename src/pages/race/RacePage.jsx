@@ -19,6 +19,7 @@ export default function RacePage() {
 
   const joinedRoom = location.state?.room;
   const leaveSent = useRef(false); // ⭐ leave 중복 발송 방지용
+  const skipLeaveRef = useRef(false); // 결과 화면 이동 시 leave 생략
 
   // location.state가 없으면 (뒤로 가기 등) 룸 리스트로 리다이렉트
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function RacePage() {
   // ======================================================
   // (1) 페이지 떠날 때 /pub/room/leave (완전 안정 버전)
   // ======================================================
-  const firstCleanup = useRef(true);
+  const shouldSkipCleanup = useRef(!!import.meta.env?.DEV);
 
   useEffect(() => {
     if (!roomId) return;
@@ -48,7 +49,7 @@ export default function RacePage() {
     const client = getClient();
 
     const sendLeave = () => {
-      if (leaveSent.current) return;
+      if (leaveSent.current || skipLeaveRef.current) return;
       if (client && client.connected) {
         client.publish({
           destination: "/pub/room/leave",
@@ -63,15 +64,14 @@ export default function RacePage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      // ⭐ StrictMode의 첫 cleanup만 무시
-      if (firstCleanup.current) {
-        firstCleanup.current = false;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (shouldSkipCleanup.current) {
+        shouldSkipCleanup.current = false;
         return;
       }
 
       // ⭐ 실제로 페이지 떠날 때만 leave 실행됨
       sendLeave();
-      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [location.pathname, roomId]);
 
@@ -127,7 +127,18 @@ export default function RacePage() {
           coin={1200}
         />
 
-        <RaceManager client={client} room={joinedRoom}>
+        <RaceManager
+          client={client}
+          room={joinedRoom}
+          onGameFinished={(gameData) => {
+            skipLeaveRef.current = true;
+            leaveSent.current = true;
+            navigate("/result", {
+              replace: true,
+              state: { room: joinedRoom, gameData },
+            });
+          }}
+        >
           <RaceTrack />
         </RaceManager>
       </div>
