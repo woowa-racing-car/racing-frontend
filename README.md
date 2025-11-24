@@ -185,8 +185,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build
 npm run preview
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+```
 
 ### 환경 변수
 ```
@@ -229,7 +228,7 @@ MainInput을 독립된 입력 컴포넌트로 만들고, 입력/레이블 스타
 
 ---
 
-# 3주차 피드백 적용
+### 3주차 피드백 적용
 
 ###  15라인 초과 함수 인지 및 분리 계획
 
