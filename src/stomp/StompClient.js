@@ -41,11 +41,8 @@ export function subscribe(destination, callback) {
   return sub;
 }
 
-export function connectStomp(wsUrl, token, onConnected) {
-  if (_client && _wsUrl === wsUrl) {
-    if (onConnected) onConnected();
-    return _client;
-  }
+export function connectStomp(wsUrl, token) {
+  if (_client && _wsUrl === wsUrl) return _client;
 
   _wsUrl = wsUrl;
   _token = token;
@@ -57,26 +54,15 @@ export function connectStomp(wsUrl, token, onConnected) {
     reconnectDelay: 5000,
   });
 
-  client.onConnect = (frame) => {
+  client.onConnect = () => {
     console.log("[STOMP] connected");
-
-    if (typeof onConnected === "function") onConnected(frame);
   };
-
-  client.onStompError = (frame) => {
-    console.error("[STOMP ERROR]", frame);
-  };
-
-  client.onWebSocketClose = (evt) => {
-    console.log("[STOMP] websocket closed", evt);
-  };
-
-  client.activate(); // 연결 시도
 
   _client = client;
-
+  client.activate();
   return client;
 }
+
 
 // optional helper to disconnect (테스트/cleanup용)
 export function disconnectStomp() {
