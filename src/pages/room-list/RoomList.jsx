@@ -1,7 +1,7 @@
 // src/pages/room/RoomList.jsx (수정된 주요 부분 전체 파일)
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { connectStomp, getClient, getWsUrl} from "../../stomp/StompClient";
+import { connectStomp, getClient, getWsUrl, safePublish } from "../../stomp/StompClient";
 
 import CommonHeader from "../../components/CommonHeader";
 import RoomListBackground from "./RoomListBackground";
@@ -82,7 +82,7 @@ const RoomList = () => {
     );
 
       console.log("[SEND] /pub/rooms");
-      client.publish({ destination: "/pub/rooms" });
+      safePublish({ destination: "/pub/rooms" });
     }
 
     // cleanup
