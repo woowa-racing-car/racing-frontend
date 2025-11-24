@@ -1,7 +1,7 @@
 // src/pages/room/RoomList.jsx (수정된 주요 부분 전체 파일)
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { connectStomp, getClient, getWsUrl, safePublish } from "../../stomp/StompClient";
+import { connectStomp, getClient, getWsUrl } from "../../stomp/StompClient";
 
 import CommonHeader from "../../components/CommonHeader";
 import RoomListBackground from "./RoomListBackground";
@@ -29,20 +29,21 @@ const RoomList = () => {
   const wsUrl = `${import.meta.env.VITE_BASE_URL}/ws?token=${token}&roomTier=${roomTier}`;
 
   useEffect(() => {
-    let client = getClient();
+    const client = getClient();
 
-    // 1) 아직 client가 없다면 연결 시작
+    // 최초 연결 또는 wsUrl 변경 시
     if (!client || getWsUrl() !== wsUrl) {
       console.log("[STOMP] Connecting...");
 
       connectStomp(wsUrl, token, () => {
-        console.log("[STOMP] connected");
+        console.log("[STOMP] connected (fresh)");
         setupSubscriptions();
       });
 
       return;
     }
 
+    // client는 있으나 아직 연결 안됨
     if (!client.connected) {
       client.onConnect = () => {
         console.log("[STOMP] connected (late)");
@@ -51,44 +52,45 @@ const RoomList = () => {
       return;
     }
 
+    // 이미 연결 완료 상태
     setupSubscriptions();
 
+
     function setupSubscriptions() {
+      if (subsRef.current.rooms) return; // 중복 방지
+
       const roomsSubPath = `/sub/rooms/${roomTier}`;
 
       subsRef.current.rooms = client.subscribe(roomsSubPath, (msg) => {
         const body = JSON.parse(msg.body);
-        console.log(`[RECEIVED] /sub/rooms/${roomTier}`, body);
+        console.log(`[RECEIVED] ${roomsSubPath}`, body);
         setRooms(prev => ({ ...prev, [roomTier]: body.data.rooms }));
       });
 
       subsRef.current.create = client.subscribe("/user/sub/room/create", (msg) => {
         const body = JSON.parse(msg.body);
-        console.log(`[RECEIVED] /user/sub/room/create`, body);
         navigate(`/race/${roomTier}`, { state: { room: body.data } });
       });
 
       subsRef.current.join = client.subscribe("/user/sub/room/join", (msg) => {
         const body = JSON.parse(msg.body);
-        console.log(`[RECEIVED] /user/sub/room/join`, body);
         if (body.type === "ROOM_JOIN_SUCCESS") {
           navigate(`/race/${roomTier}`, { state: { room: body.data } });
         }
       });
 
       subsRef.current.error = client.subscribe("/user/sub/error", (msg) => {
-        alert("[ERROR]" + JSON.parse(msg.body).message);
-      }
-    );
+        alert(JSON.parse(msg.body).message);
+      });
 
+      // ⬅ 여기서만 pub 실행됨
       console.log("[SEND] /pub/rooms");
-      safePublish({ destination: "/pub/rooms" });
+      client.publish({ destination: "/pub/rooms" });
     }
 
-    // cleanup
     return () => {
       Object.values(subsRef.current).forEach(sub => {
-        try { sub.unsubscribe(); } catch (e) {}
+        try { sub.unsubscribe(); } catch {}
       });
       subsRef.current = {};
     };
